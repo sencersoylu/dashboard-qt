@@ -14,7 +14,9 @@ Rectangle {
         spacing: 16
 
         Image {
-            source: "../../assets/images/hipertech-logo.svg"
+            source: (appState && appState.darkMode)
+                    ? "../../assets/images/hipertech-logo.svg"
+                    : "../../assets/images/hipertech-logo-light.svg"
             Layout.preferredHeight: 64
             Layout.preferredWidth: 354
             fillMode: Image.PreserveAspectFit

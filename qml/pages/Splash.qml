@@ -40,6 +40,8 @@ Rectangle {
         Image {
             id: logo
             Layout.alignment: Qt.AlignHCenter
+            // Splash background is the dark gradient regardless of theme,
+            // so always use the white logo here for legibility.
             source: "../../assets/images/hipertech-logo.svg"
             sourceSize.width: 480
             fillMode: Image.PreserveAspectFit
