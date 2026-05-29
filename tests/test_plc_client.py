@@ -132,7 +132,7 @@ def test_chiller_state_skips_on_string_payload(qapp):
     client = PlcClient(s)
     payload = {"isConnectedPLC": 1, "data": [0.0] * 31}
     payload["data"][27] = 0           # link OK
-    payload["data"][28] = "NaN"       # garbage
+    payload["data"][28] = "abc"       # garbage (float("NaN") returns nan, not raises)
     payload["data"][29] = "??"        # garbage
     # Must not raise
     client._on_data_sync(payload)
