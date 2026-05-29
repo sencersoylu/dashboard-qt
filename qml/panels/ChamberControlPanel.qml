@@ -78,20 +78,60 @@ Ui.Card {
         Item { Layout.fillHeight: true }
 
         // ----- Chiller pill button -----
-        Ui.AppButton {
+        Item {
             Layout.fillWidth: true
-            size: "lg"
-            variant: appState && appState.chillerRunning ? "info" : "muted"
-            text: {
-                if (!appState) return "Chiller Off"
-                if (appState.chillerCommError) return "Chiller Off"
-                if (appState.chillerRunning) {
-                    return "Chiller " + appState.chillerCurrentTemp.toFixed(1) + "°C"
-                }
-                return "Chiller Off"
+            Layout.preferredHeight: 64
+
+            Rectangle {
+                id: chillerBg
+                anchors.fill: parent
+                radius: height / 2   // pill shape
+                color: !appState || appState.chillerCommError
+                       ? Rsp.Theme.slate500
+                       : appState.chillerRunning
+                           ? Rsp.Theme.sky
+                           : Rsp.Theme.slate500
+                opacity: (appState && appState.chillerCommError) ? 0.5 : 1.0
+
+                Behavior on color   { ColorAnimation { duration: Rsp.Theme.animMed } }
+                Behavior on opacity { NumberAnimation { duration: Rsp.Theme.animFast } }
+
+                scale: chillerArea.pressed ? 0.98 : (chillerArea.containsMouse ? 1.02 : 1.0)
+                Behavior on scale { NumberAnimation { duration: Rsp.Theme.animFast } }
             }
-            enabledState: !(appState && appState.chillerCommError)
-            onClicked: root.chillerRequested()
+
+            RowLayout {
+                anchors.centerIn: parent
+                spacing: 12
+
+                Image {
+                    Layout.preferredWidth: 20
+                    Layout.preferredHeight: 20
+                    source: "../../assets/icons/monitor.svg"
+                    sourceSize: Qt.size(20, 20)
+                }
+                Text {
+                    text: {
+                        if (!appState || appState.chillerCommError) return "Chiller Off"
+                        return appState.chillerRunning
+                            ? "Chiller " + appState.chillerCurrentTemp.toFixed(1) + "°C"
+                            : "Chiller Off"
+                    }
+                    color: "#ffffff"
+                    font.family: Rsp.Theme.fontFamily
+                    font.pixelSize: Rsp.Theme.fontSizeLg
+                    font.weight: Font.DemiBold
+                }
+            }
+
+            MouseArea {
+                id: chillerArea
+                anchors.fill: parent
+                hoverEnabled: true
+                enabled: !(appState && appState.chillerCommError)
+                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ForbiddenCursor
+                onClicked: root.chillerRequested()
+            }
         }
     }
 }

@@ -17,28 +17,28 @@ Rectangle {
 
     Rectangle {
         visible: appState && appState.darkMode
-        x: -100; y: 100
-        width: 400; height: 400
-        radius: 200
-        color: Qt.rgba(0.05, 0.45, 0.85, 0.15)
+        x: -300; y: -100
+        width: 700; height: 700
+        radius: 350
+        color: Qt.rgba(0.05, 0.45, 0.85, 0.06)   // sky tint, 6% opacity
     }
     Rectangle {
         visible: appState && appState.darkMode
         anchors.right: parent.right
-        anchors.rightMargin: -120
-        y: parent.height * 0.3
-        width: 360; height: 360
-        radius: 180
-        color: Qt.rgba(0.4, 0.2, 0.9, 0.10)
+        anchors.rightMargin: -200
+        y: parent.height * 0.2
+        width: 600; height: 600
+        radius: 300
+        color: Qt.rgba(0.4, 0.2, 0.9, 0.05)
     }
     Rectangle {
         visible: appState && appState.darkMode
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: -180
-        width: 500; height: 500
-        radius: 250
-        color: Qt.rgba(0.05, 0.7, 0.5, 0.08)
+        anchors.bottomMargin: -300
+        width: 800; height: 800
+        radius: 400
+        color: Qt.rgba(0.05, 0.7, 0.5, 0.04)
     }
 
     Timer {

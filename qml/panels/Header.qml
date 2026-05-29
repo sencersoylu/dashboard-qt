@@ -29,11 +29,11 @@ Rectangle {
             color: themeArea.containsMouse ? Rsp.Theme.border : "transparent"
             Behavior on color { ColorAnimation { duration: Rsp.Theme.animFast } }
 
-            Text {
+            Image {
                 anchors.centerIn: parent
-                text: appState && appState.darkMode ? "☀" : "☾"
-                color: Rsp.Theme.text
-                font.pixelSize: 20
+                source: appState && appState.darkMode ? "../../assets/icons/sun.svg" : "../../assets/icons/moon.svg"
+                sourceSize: Qt.size(22, 22)
+                width: 22; height: 22
             }
 
             MouseArea {
@@ -59,10 +59,11 @@ Rectangle {
                 anchors.rightMargin: 16
                 spacing: 8
 
-                Text {
-                    text: (appState && appState.connected) ? "●" : "○"
-                    color: (appState && appState.connected) ? "#34d399" : "#f87171"
-                    font.pixelSize: 14
+                Image {
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+                    source: (appState && appState.connected) ? "../../assets/icons/wifi.svg" : "../../assets/icons/wifi-off.svg"
+                    sourceSize: Qt.size(16, 16)
                 }
                 Text {
                     id: connText
@@ -90,6 +91,12 @@ Rectangle {
                 anchors.rightMargin: 16
                 spacing: 8
 
+                Image {
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+                    source: "../../assets/icons/calendar.svg"
+                    sourceSize: Qt.size(16, 16)
+                }
                 Text {
                     text: appState ? appState.currentTime2 : ""
                     color: Rsp.Theme.text
@@ -101,6 +108,12 @@ Rectangle {
                     text: "•"
                     color: Rsp.Theme.textMuted
                     font.pixelSize: 14
+                }
+                Image {
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+                    source: "../../assets/icons/clock.svg"
+                    sourceSize: Qt.size(16, 16)
                 }
                 Text {
                     text: appState ? appState.currentTime : ""
