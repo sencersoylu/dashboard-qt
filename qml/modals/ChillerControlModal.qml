@@ -35,44 +35,67 @@ Ui.AppModal {
     // ============ Custom Header ============
     RowLayout {
         Layout.fillWidth: true
-        spacing: 12
+        Layout.bottomMargin: 4
+        spacing: 14
 
-        // Icon badge with accent ring
+        // Icon badge — radial gradient backdrop + soft outer halo + crisp snowflake
         Item {
-            implicitWidth: 44; implicitHeight: 44
+            implicitWidth: 56; implicitHeight: 56
+
+            // Soft outer halo (slightly larger than the badge)
             Rectangle {
-                anchors.fill: parent
-                radius: 12
-                color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.15)
-                border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.35)
-                border.width: 1
-            }
-            Image {
                 anchors.centerIn: parent
-                source: "../../assets/icons/snowflake.svg"
-                sourceSize: Qt.size(22, 22)
-                width: 22; height: 22
-                // Tint via ColorOverlay-like trick: keep stroke=currentColor → reuse opacity
-                opacity: 1.0
-            }
-            Rectangle {
-                anchors.fill: parent
-                radius: 12
-                color: root.accent
-                opacity: 0.0
-                // Optional pulse when running
+                width: 72; height: 72
+                radius: width / 2
+                color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.10)
+                opacity: 0.85
                 SequentialAnimation on opacity {
                     running: root.running
                     loops: Animation.Infinite
-                    NumberAnimation { from: 0.0; to: 0.18; duration: 900; easing.type: Easing.InOutQuad }
-                    NumberAnimation { from: 0.18; to: 0.0; duration: 900; easing.type: Easing.InOutQuad }
+                    NumberAnimation { from: 0.55; to: 0.95; duration: 1200; easing.type: Easing.InOutQuad }
+                    NumberAnimation { from: 0.95; to: 0.55; duration: 1200; easing.type: Easing.InOutQuad }
                 }
+            }
+
+            // Main badge — radial gradient hint via two stacked rectangles
+            Rectangle {
+                anchors.fill: parent
+                radius: 14
+                gradient: Gradient {
+                    orientation: Gradient.Vertical
+                    GradientStop { position: 0.0; color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.28) }
+                    GradientStop { position: 1.0; color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.10) }
+                }
+                border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.45)
+                border.width: 1
+            }
+
+            // Sheen highlight along the top
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: 1
+                height: parent.height * 0.5
+                radius: 13
+                gradient: Gradient {
+                    orientation: Gradient.Vertical
+                    GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.10) }
+                    GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.00) }
+                }
+            }
+
+            Image {
+                anchors.centerIn: parent
+                source: "../../assets/icons/snowflake.svg"
+                sourceSize: Qt.size(28, 28)
+                width: 28; height: 28
             }
         }
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: 6
             Text {
                 text: "Chiller Control"
                 color: Rsp.Theme.text
@@ -80,33 +103,48 @@ Ui.AppModal {
                 font.pixelSize: 22
                 font.weight: Font.Bold
             }
-            RowLayout {
-                spacing: 8
-                Rectangle {
-                    implicitWidth: 8; implicitHeight: 8
-                    radius: 4
-                    color: root.accent
-                    SequentialAnimation on opacity {
-                        running: root.running
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 1.0; to: 0.3; duration: 700; easing.type: Easing.InOutQuad }
-                        NumberAnimation { from: 0.3; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
+            // Status pill — tinted bg + animated dot
+            Rectangle {
+                Layout.preferredHeight: 24
+                implicitWidth: statusRow.implicitWidth + 18
+                radius: 12
+                color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.15)
+                border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.35)
+                border.width: 1
+
+                RowLayout {
+                    id: statusRow
+                    anchors.centerIn: parent
+                    spacing: 7
+
+                    Rectangle {
+                        implicitWidth: 7; implicitHeight: 7
+                        radius: 3.5
+                        color: root.accent
+                        SequentialAnimation on opacity {
+                            running: root.running
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 1.0; to: 0.35; duration: 700; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: 0.35; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
+                        }
                     }
-                }
-                Text {
-                    text: root.commError ? "Communication Error"
-                          : root.running   ? "Running"
-                                           : "Stopped"
-                    color: Rsp.Theme.textMuted
-                    font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeSm
-                    font.weight: Font.Medium
+                    Text {
+                        text: root.commError ? "Communication Error"
+                              : root.running   ? "Running"
+                                               : "Stopped"
+                        color: root.accent
+                        font.family: Rsp.Theme.fontFamily
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                        font.letterSpacing: 0.4
+                    }
                 }
             }
         }
 
         // Close button
         Item {
+            Layout.alignment: Qt.AlignTop
             implicitWidth: 32; implicitHeight: 32
             Rectangle {
                 anchors.fill: parent
@@ -132,6 +170,14 @@ Ui.AppModal {
     }
 
     // ============ Temperature Cards (Current | Target) ============
+    readonly property real currentTemp: appState ? appState.chillerCurrentTemp : 0.0
+    readonly property real delta: root.commError ? 0.0 : (root.currentTemp - root.localSetTemp)
+    readonly property bool atTarget: Math.abs(root.delta) < 0.3
+    readonly property color deltaColor: root.commError ? Rsp.Theme.textMuted
+                                        : root.atTarget ? Rsp.Theme.emerald
+                                        : root.delta > 0 ? Rsp.Theme.amber
+                                                         : Rsp.Theme.sky
+
     RowLayout {
         Layout.fillWidth: true
         Layout.topMargin: 4
@@ -140,7 +186,7 @@ Ui.AppModal {
         // Current temp card
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 124
+            Layout.preferredHeight: 134
             radius: Rsp.Theme.radiusMd
             color: Qt.rgba(1, 1, 1, 0.04)
             border.color: Qt.rgba(1, 1, 1, 0.08)
@@ -148,10 +194,11 @@ Ui.AppModal {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 8
+                anchors.margins: 18
+                spacing: 6
 
                 RowLayout {
+                    Layout.fillWidth: true
                     spacing: 6
                     Rectangle {
                         implicitWidth: 6; implicitHeight: 6; radius: 3
@@ -165,6 +212,32 @@ Ui.AppModal {
                         font.weight: Font.Bold
                         font.letterSpacing: 1.5
                     }
+                    Item { Layout.fillWidth: true }
+
+                    // Δ chip — sits inline with the CURRENT label
+                    Rectangle {
+                        visible: !root.commError
+                        implicitHeight: 20
+                        implicitWidth: deltaLabel.implicitWidth + 14
+                        radius: 10
+                        color: Qt.rgba(root.deltaColor.r, root.deltaColor.g, root.deltaColor.b, 0.18)
+                        border.color: Qt.rgba(root.deltaColor.r, root.deltaColor.g, root.deltaColor.b, 0.35)
+                        border.width: 1
+
+                        Text {
+                            id: deltaLabel
+                            anchors.centerIn: parent
+                            text: root.atTarget
+                                  ? "● on target"
+                                  : (root.delta > 0 ? "▲ " : "▼ ")
+                                    + Math.abs(root.delta).toFixed(1) + "°C"
+                            color: root.deltaColor
+                            font.family: Rsp.Theme.fontFamily
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                            font.letterSpacing: 0.3
+                        }
+                    }
                 }
 
                 Item { Layout.fillHeight: true }
@@ -174,10 +247,10 @@ Ui.AppModal {
                     Text {
                         text: root.commError
                               ? "––"
-                              : (appState ? appState.chillerCurrentTemp.toFixed(1) : "––")
+                              : root.currentTemp.toFixed(1)
                         color: Rsp.Theme.text
                         font.family: Rsp.Theme.fontFamily
-                        font.pixelSize: 44
+                        font.pixelSize: 46
                         font.weight: Font.Bold
                     }
                     Text {
@@ -186,27 +259,32 @@ Ui.AppModal {
                         font.family: Rsp.Theme.fontFamily
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
-                        Layout.bottomMargin: 6
+                        Layout.bottomMargin: 8
                     }
                 }
             }
         }
 
-        // Target temp card (cyan accent)
+        // Target temp card (cyan accent + gradient bg)
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 124
+            Layout.preferredHeight: 134
             radius: Rsp.Theme.radiusMd
-            color: Qt.rgba(Rsp.Theme.cyan.r, Rsp.Theme.cyan.g, Rsp.Theme.cyan.b, 0.10)
-            border.color: Qt.rgba(Rsp.Theme.cyan.r, Rsp.Theme.cyan.g, Rsp.Theme.cyan.b, 0.30)
+            gradient: Gradient {
+                orientation: Gradient.Vertical
+                GradientStop { position: 0.0; color: Qt.rgba(Rsp.Theme.cyan.r, Rsp.Theme.cyan.g, Rsp.Theme.cyan.b, 0.18) }
+                GradientStop { position: 1.0; color: Qt.rgba(Rsp.Theme.cyan.r, Rsp.Theme.cyan.g, Rsp.Theme.cyan.b, 0.06) }
+            }
+            border.color: Qt.rgba(Rsp.Theme.cyan.r, Rsp.Theme.cyan.g, Rsp.Theme.cyan.b, 0.35)
             border.width: 1
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 8
+                anchors.margins: 18
+                spacing: 6
 
                 RowLayout {
+                    Layout.fillWidth: true
                     spacing: 6
                     Rectangle {
                         implicitWidth: 6; implicitHeight: 6; radius: 3
@@ -220,6 +298,16 @@ Ui.AppModal {
                         font.weight: Font.Bold
                         font.letterSpacing: 1.5
                     }
+                    Item { Layout.fillWidth: true }
+                    // Range hint chip
+                    Text {
+                        text: "5 – 35 °C"
+                        color: Qt.rgba(Rsp.Theme.cyan.r, Rsp.Theme.cyan.g, Rsp.Theme.cyan.b, 0.7)
+                        font.family: Rsp.Theme.fontFamily
+                        font.pixelSize: 10
+                        font.weight: Font.Bold
+                        font.letterSpacing: 0.4
+                    }
                 }
 
                 Item { Layout.fillHeight: true }
@@ -230,7 +318,7 @@ Ui.AppModal {
                         text: root.localSetTemp.toFixed(1)
                         color: Rsp.Theme.cyan
                         font.family: Rsp.Theme.fontFamily
-                        font.pixelSize: 44
+                        font.pixelSize: 46
                         font.weight: Font.Bold
                     }
                     Text {
@@ -239,7 +327,7 @@ Ui.AppModal {
                         font.family: Rsp.Theme.fontFamily
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
-                        Layout.bottomMargin: 6
+                        Layout.bottomMargin: 8
                     }
                 }
             }
