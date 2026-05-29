@@ -8,7 +8,7 @@ ApplicationWindow {
     width: 1280
     height: 720
     visibility: Window.FullScreen
-    title: "RSP — Qt (Phase 0)"
+    title: "RSP — Qt (Phase 2)"
     color: Rsp.Theme.bg
 
     FontLoader { source: "../assets/fonts/Poppins-Regular.ttf" }
@@ -28,35 +28,54 @@ ApplicationWindow {
         onActivated: appState.darkMode = !appState.darkMode
     }
 
-    Rectangle {
+    Shortcut {
+        sequence: "Ctrl+S"
+        onActivated: {
+            if (stack.depth > 1) {
+                stack.pop()
+            } else {
+                stack.push("pages/Showcase.qml")
+            }
+        }
+    }
+
+    StackView {
+        id: stack
         anchors.fill: parent
-        color: Rsp.Theme.bg
+        initialItem: phase0Body
+    }
 
-        ColumnLayout {
-            anchors.centerIn: parent
-            spacing: Rsp.Theme.spacingMd
+    Component {
+        id: phase0Body
+        Rectangle {
+            color: Rsp.Theme.bg
 
-            Text {
-                text: "RSP Qt — Phase 0"
-                color: Rsp.Theme.text
-                font.family: Rsp.Theme.fontFamily
-                font.pixelSize: Rsp.Theme.fontSizeXl
-                font.weight: Font.Bold
-                Layout.alignment: Qt.AlignHCenter
-            }
-            Text {
-                text: "F11: fullscreen   ·   Ctrl+D: dark mode toggle"
-                color: Rsp.Theme.textMuted
-                font.family: Rsp.Theme.fontFamily
-                font.pixelSize: Rsp.Theme.fontSizeMd
-                Layout.alignment: Qt.AlignHCenter
-            }
-            Text {
-                text: "Dark mode: " + (Rsp.Theme.dark ? "ON" : "OFF")
-                color: Rsp.Theme.emerald
-                font.family: Rsp.Theme.fontFamily
-                font.pixelSize: Rsp.Theme.fontSizeLg
-                Layout.alignment: Qt.AlignHCenter
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: Rsp.Theme.spacingMd
+
+                Text {
+                    text: "RSP Qt — Phase 2"
+                    color: Rsp.Theme.text
+                    font.family: Rsp.Theme.fontFamily
+                    font.pixelSize: Rsp.Theme.fontSizeXl
+                    font.weight: Font.Bold
+                    Layout.alignment: Qt.AlignHCenter
+                }
+                Text {
+                    text: "F11: fullscreen · Ctrl+D: dark mode · Ctrl+S: Showcase"
+                    color: Rsp.Theme.textMuted
+                    font.family: Rsp.Theme.fontFamily
+                    font.pixelSize: Rsp.Theme.fontSizeMd
+                    Layout.alignment: Qt.AlignHCenter
+                }
+                Text {
+                    text: "Dark mode: " + (Rsp.Theme.dark ? "ON" : "OFF")
+                    color: Rsp.Theme.emerald
+                    font.family: Rsp.Theme.fontFamily
+                    font.pixelSize: Rsp.Theme.fontSizeLg
+                    Layout.alignment: Qt.AlignHCenter
+                }
             }
         }
     }
