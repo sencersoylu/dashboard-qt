@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import ".." as Rsp
+import "../ui" as Ui
 
 Rectangle {
     id: root
@@ -31,19 +32,27 @@ Rectangle {
                 font.pixelSize: Rsp.Theme.fontSizeMd
             }
 
-            Rectangle {
-                Layout.preferredHeight: 80
+            // ===== AppButton ==========================================
+            Text {
+                text: "AppButton"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            Flow {
                 Layout.fillWidth: true
-                radius: Rsp.Theme.radiusMd
-                color: Rsp.Theme.bgPanel
-                border.color: Rsp.Theme.border
-                border.width: 1
-                Text {
-                    anchors.centerIn: parent
-                    text: "Bundles 2–5 populate this page."
-                    color: Rsp.Theme.textMuted
-                    font.family: Rsp.Theme.fontFamily
-                }
+                spacing: 12
+                Ui.AppButton { text: "Default";  variant: "default" }
+                Ui.AppButton { text: "Success";  variant: "success" }
+                Ui.AppButton { text: "Warning";  variant: "warning" }
+                Ui.AppButton { text: "Danger";   variant: "danger" }
+                Ui.AppButton { text: "Info";     variant: "info" }
+                Ui.AppButton { text: "Muted";    variant: "muted" }
+                Ui.AppButton { text: "Disabled"; variant: "default"; enabledState: false }
+                Ui.AppButton { text: "Loading…"; variant: "info"; isLoading: true }
+                Ui.AppButton { text: "Small";    variant: "success"; size: "sm" }
+                Ui.AppButton { text: "Large";    variant: "danger"; size: "lg" }
             }
         }
     }
