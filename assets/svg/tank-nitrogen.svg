@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="110" height="150" viewBox="0 0 110 150">
+  <defs>
+    <linearGradient id="tank-gradient-n2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="30%" stop-color="#10b981"/>
+      <stop offset="70%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="55" cy="25" rx="42" ry="18" fill="#10b981" stroke="#059669" stroke-width="2"/>
+  <rect x="13" y="25" width="84" height="100" fill="url(#tank-gradient-n2)" stroke="#059669" stroke-width="2"/>
+  <ellipse cx="55" cy="125" rx="42" ry="18" fill="#047857" stroke="#059669" stroke-width="2"/>
+  <ellipse cx="55" cy="25" rx="32" ry="12" fill="#34d399" opacity="0.5"/>
+</svg>

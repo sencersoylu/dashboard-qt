@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="190" viewBox="0 0 32 190">
+  <defs>
+    <linearGradient id="cyl-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="25%" stop-color="#2563eb"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="75%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="0" width="12" height="12" rx="2" fill="#6b7280"/>
+  <rect x="8" y="10" width="16" height="8" rx="2" fill="#4b5563"/>
+  <rect x="2" y="18" width="28" height="160" rx="6" fill="url(#cyl-grad)"/>
+  <ellipse cx="16" cy="175" rx="14" ry="6" fill="#1e40af"/>
+  <rect x="7" y="25" width="5" height="140" rx="2.5" fill="rgba(255,255,255,0.25)"/>
+</svg>
