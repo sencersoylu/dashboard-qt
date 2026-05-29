@@ -12,7 +12,7 @@ Rectangle {
     default property alias body: contentColumn.data
     property Component headerAction: null
 
-    radius: Rsp.Theme.radiusLg
+    radius: 16
     color: appState && appState.darkMode
            ? Qt.rgba(1, 1, 1, 0.05)
            : Qt.rgba(1, 1, 1, 0.80)
@@ -63,7 +63,7 @@ Rectangle {
                     text: root.title
                     color: Rsp.Theme.text
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeXl
+                    font.pixelSize: 20
                     font.weight: Font.Bold
                     Layout.fillWidth: true
                 }

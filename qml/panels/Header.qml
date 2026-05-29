@@ -6,23 +6,19 @@ import ".." as Rsp
 Rectangle {
     id: root
 
-    implicitHeight: 100
-    color: Rsp.Theme.bgPanel
-    border.color: Rsp.Theme.border
-    border.width: 1
+    implicitHeight: 64
+    color: "transparent"
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 24
-        anchors.rightMargin: 24
         spacing: 16
 
         Image {
             source: "../../assets/images/hipertech-logo.svg"
-            Layout.preferredHeight: 72
-            Layout.preferredWidth: 360
+            Layout.preferredHeight: 64
+            Layout.preferredWidth: 354
             fillMode: Image.PreserveAspectFit
-            sourceSize: Qt.size(640, 128)
+            sourceSize: Qt.size(708, 128)
         }
 
         Item { Layout.fillWidth: true }
@@ -50,63 +46,78 @@ Rectangle {
         }
 
         Rectangle {
-            implicitHeight: 36
+            implicitHeight: 38
             implicitWidth: connText.implicitWidth + 32
-            radius: 18
-            color: (appState && appState.connected) ? Rsp.Theme.emerald : Rsp.Theme.rose
+            radius: 19
+            color: (appState && appState.connected)
+                   ? Qt.rgba(0.063, 0.725, 0.506, 0.20)
+                   : Qt.rgba(0.937, 0.267, 0.267, 0.20)
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 12
-                anchors.rightMargin: 12
-                spacing: 6
+                anchors.leftMargin: 16
+                anchors.rightMargin: 16
+                spacing: 8
 
                 Text {
                     text: (appState && appState.connected) ? "●" : "○"
-                    color: "#ffffff"
+                    color: (appState && appState.connected) ? "#34d399" : "#f87171"
                     font.pixelSize: 14
                 }
                 Text {
                     id: connText
                     text: (appState && appState.connected) ? "Connected" : "Disconnected"
-                    color: "#ffffff"
+                    color: (appState && appState.connected) ? "#34d399" : "#f87171"
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeSm
-                    font.weight: Font.DemiBold
+                    font.pixelSize: 14
+                    font.weight: Font.Medium
                 }
             }
         }
 
         Rectangle {
-            implicitHeight: 36
+            implicitHeight: 40
             implicitWidth: timeRow.implicitWidth + 32
-            radius: 18
-            color: Rsp.Theme.bg
-            border.color: Rsp.Theme.border
+            radius: 20
+            color: appState && appState.darkMode ? Qt.rgba(0,0,0,0.30) : Qt.rgba(1,1,1,0.80)
+            border.color: appState && appState.darkMode ? Qt.rgba(1,1,1,0.10) : Rsp.Theme.border
             border.width: 1
 
             RowLayout {
                 id: timeRow
                 anchors.fill: parent
-                anchors.leftMargin: 12
-                anchors.rightMargin: 12
+                anchors.leftMargin: 16
+                anchors.rightMargin: 16
                 spacing: 12
 
                 Text {
-                    text: appState ? appState.currentTime2 : ""
+                    text: "🗓"
                     color: Rsp.Theme.textMuted
-                    font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeSm
+                    font.pixelSize: 14
                 }
-                Rectangle {
-                    width: 1; height: 16; color: Rsp.Theme.border
+                Text {
+                    text: appState ? appState.currentTime2 : ""
+                    color: Rsp.Theme.text
+                    font.family: Rsp.Theme.fontFamily
+                    font.pixelSize: 14
+                    font.weight: Font.Medium
+                }
+                Text {
+                    text: "·"
+                    color: Rsp.Theme.textMuted
+                    font.pixelSize: 14
+                }
+                Text {
+                    text: "🕐"
+                    color: Rsp.Theme.textMuted
+                    font.pixelSize: 14
                 }
                 Text {
                     text: appState ? appState.currentTime : ""
                     color: Rsp.Theme.text
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeMd
-                    font.weight: Font.DemiBold
+                    font.pixelSize: 14
+                    font.weight: Font.Medium
                 }
             }
         }

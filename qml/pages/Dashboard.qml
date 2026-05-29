@@ -53,46 +53,55 @@ Rectangle {
         }
     }
 
-    ColumnLayout {
+    Item {
+        id: page
         anchors.fill: parent
-        spacing: 0
+        anchors.leftMargin: 32
+        anchors.rightMargin: 32
+        anchors.topMargin: 24
 
+        // ----- Header (1216 × 64) -----
         Panels.Header {
-            Layout.fillWidth: true
+            id: header
+            width: page.width
+            height: 64
         }
 
+        // ----- Main grid (1216 × 441) at y = 64 + 24 -----
         RowLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.margins: 24
+            id: mainGrid
+            anchors.top: header.bottom
+            anchors.topMargin: 24
+            width: page.width
+            height: 441
             spacing: 24
 
-            // Column 1
+            // Column 1 — Chamber Control (286 × 441)
             Panels.ChamberControlPanel {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredWidth: 286
+                Layout.preferredHeight: 441
                 onChillerRequested: chillerModal.open()
             }
 
-            // Column 2
+            // Column 2 — Auxiliary Decompression (389 × 441)
             Panels.AuxiliaryOutputPanel {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredWidth: 389
+                Layout.preferredHeight: 441
             }
 
-            // Column 3 (Lighting top + Fan bottom)
+            // Column 3 — Lighting (top, 493 × 209) + Fan (bottom, 493 × 209)
             ColumnLayout {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredWidth: 493
+                Layout.preferredHeight: 441
                 spacing: 24
 
                 Panels.LightingPanel {
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    Layout.preferredHeight: 209
                 }
                 Panels.FanPanel {
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    Layout.preferredHeight: 209
                 }
             }
         }

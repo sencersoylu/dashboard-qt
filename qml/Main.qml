@@ -7,7 +7,7 @@ ApplicationWindow {
     id: window
     width: 1280
     height: 720
-    visibility: Window.FullScreen
+    visibility: Window.Windowed
     title: "RSP — Qt (Phase 2)"
     color: Rsp.Theme.bg
 
