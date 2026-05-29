@@ -150,6 +150,19 @@ Rectangle {
                     { "label": "Manual","color": Rsp.Theme.amber   }
                 ]
             }
+
+            // ===== AppSlider ==========================================
+            Text {
+                text: "AppSlider"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            Ui.AppSlider { Layout.preferredWidth: 480; label: "Brightness"; value: 64;  color: "blue"     }
+            Ui.AppSlider { Layout.preferredWidth: 480; label: "Temp";       value: 22;  color: "emerald"; min: 0; max: 40 }
+            Ui.AppSlider { Layout.preferredWidth: 480; label: "Warning";    value: 80;  color: "amber";   size: "lg" }
+            Ui.AppSlider { Layout.preferredWidth: 480; label: "Disabled";   value: 50;  color: "rose";    enabledState: false }
         }
     }
 
