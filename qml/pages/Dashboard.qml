@@ -137,6 +137,9 @@ Rectangle {
 
     Shortcut {
         sequence: "Escape"
-        onActivated: root.parent.StackView ? root.parent.StackView.view.pop() : null
+        onActivated: {
+            var view = root.StackView ? root.StackView.view : null
+            if (view && view.depth > 1) view.pop()
+        }
     }
 }

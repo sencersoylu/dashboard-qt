@@ -53,11 +53,10 @@ QtObject {
                             + target.virtualX + "," + target.virtualY)
                 // Move the window into the target screen's bounds *before*
                 // showing it. labwc fullscreens whatever monitor contains
-                // the window's top-left corner.
+                // the window's top-left corner, so the position is what
+                // actually matters here — size is handled by showFullScreen.
                 win.x = target.virtualX
                 win.y = target.virtualY
-                win.width = target.geometry.width
-                win.height = target.geometry.height
                 win.screen = target
                 if (!cfg || cfg.fullscreen !== false) {
                     win.showFullScreen()
