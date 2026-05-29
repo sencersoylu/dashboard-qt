@@ -124,3 +124,33 @@ async def test_write_bit_emits(qapp):
     client._sio.emit.assert_called_with(
         "writeBit", {"register": "M0202", "value": 1}
     )
+
+
+def test_chiller_state_skips_on_string_payload(qapp):
+    """data[28] / data[29] arriving as non-numeric strings must not crash."""
+    s = AppState()
+    client = PlcClient(s)
+    payload = {"isConnectedPLC": 1, "data": [0.0] * 31}
+    payload["data"][27] = 0           # link OK
+    payload["data"][28] = "NaN"       # garbage
+    payload["data"][29] = "??"        # garbage
+    # Must not raise
+    client._on_data_sync(payload)
+    # chillerCommError still False, setTemp/running untouched (defaults)
+    assert s.chillerCommError is False
+    assert s.chillerSetTemp == 20.0    # default unchanged
+    assert s.chillerRunning is False   # default unchanged
+
+
+def test_chiller_state_skips_when_data27_is_string(qapp):
+    s = AppState()
+    client = PlcClient(s)
+    payload = {"isConnectedPLC": 1, "data": [0.0] * 31}
+    payload["data"][27] = "bad"
+    payload["data"][28] = 55
+    payload["data"][29] = 1
+    client._on_data_sync(payload)
+    # Bailed early; nothing chiller-related changed.
+    assert s.chillerCommError is False
+    assert s.chillerSetTemp == 20.0
+    assert s.chillerRunning is False

@@ -95,20 +95,42 @@ class PlcClient(QObject):
         self._apply_chiller_state(data)
 
     def _apply_chiller_state(self, data: list) -> None:
-        """Three-index correlated logic for chiller link / set / run."""
+        """Three-index correlated logic for chiller link / set / run.
+
+        Contract: when `data[27] == 10` (bridge unreachable) we hold the last
+        known `chillerSetTemp` and `chillerRunning` values rather than zeroing
+        them. QML must gate display on `chillerCommError` so users don't see
+        stale numbers. This matches the React app's "mask as `--- °C`" pattern.
+
+        Defensive: malformed (non-numeric) entries are logged and skipped so a
+        single bad frame doesn't take down the socket handler.
+        """
         n = len(data)
         if n <= _CHILLER_LINK_INDEX:
             return
-        if data[_CHILLER_LINK_INDEX] == _CHILLER_LINK_COMM_ERROR:
+        try:
+            link = int(data[_CHILLER_LINK_INDEX])
+        except (TypeError, ValueError):
+            log.warning("PLC data[27] not numeric: %r", data[_CHILLER_LINK_INDEX])
+            return
+        if link == _CHILLER_LINK_COMM_ERROR:
             self._state.chillerCommError = True
             return
         self._state.chillerCommError = False
         if n > _CHILLER_SET_TEMP_INDEX:
-            self._state.chillerSetTemp = (
-                float(data[_CHILLER_SET_TEMP_INDEX]) / _CHILLER_SET_TEMP_DIVISOR
-            )
+            try:
+                self._state.chillerSetTemp = (
+                    float(data[_CHILLER_SET_TEMP_INDEX]) / _CHILLER_SET_TEMP_DIVISOR
+                )
+            except (TypeError, ValueError):
+                log.warning("PLC data[28] not numeric: %r", data[_CHILLER_SET_TEMP_INDEX])
         if n > _CHILLER_STATUS_FLAG_INDEX:
-            self._state.chillerRunning = bool(int(data[_CHILLER_STATUS_FLAG_INDEX]) & 1)
+            try:
+                self._state.chillerRunning = bool(
+                    int(data[_CHILLER_STATUS_FLAG_INDEX]) & 1
+                )
+            except (TypeError, ValueError):
+                log.warning("PLC data[29] not numeric: %r", data[_CHILLER_STATUS_FLAG_INDEX])
 
     def _on_chiller_data_sync(self, payload: Any) -> None:
         """Only `currentTemp` is used. `running` is read from data[29] instead."""
@@ -133,6 +155,14 @@ class PlcClient(QObject):
 
     @Slot(str, int)
     def writeRegister(self, register: str, value: int) -> None:
+        """Emit a writeRegister command.
+
+        Phase 3 gating note: this schedules with `asyncio.create_task`, which
+        requires a running asyncio loop on the calling thread. With qasync
+        wired in Bundle E the Qt thread IS the asyncio thread, so this works
+        from QML slots. If a future refactor moves QML invocations off the
+        main loop, switch to `asyncio.run_coroutine_threadsafe(..., loop)`.
+        """
         if self._sio is None:
             log.warning("writeRegister called before start()")
             return
@@ -142,6 +172,7 @@ class PlcClient(QObject):
 
     @Slot(str, int)
     def writeBit(self, register: str, value: int) -> None:
+        """Emit a writeBit command. See `writeRegister` for the loop note."""
         if self._sio is None:
             log.warning("writeBit called before start()")
             return
