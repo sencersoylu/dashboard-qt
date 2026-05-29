@@ -49,7 +49,7 @@ Ui.Card {
                 Layout.fillWidth: true
                 states: root.valveStates
                 value: root.valve1Index
-                onValueChanged: function(newIndex) {
+                onValueUpdated: function(newIndex) {
                     root.valve1Index = newIndex
                     root.applyValve(newIndex, "M0500", "M0501")
                 }
@@ -70,7 +70,7 @@ Ui.Card {
                 Layout.fillWidth: true
                 states: root.valveStates
                 value: root.valve2Index
-                onValueChanged: function(newIndex) {
+                onValueUpdated: function(newIndex) {
                     root.valve2Index = newIndex
                     root.applyValve(newIndex, "M0502", "M0503")
                 }

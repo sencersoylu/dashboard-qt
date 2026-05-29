@@ -55,7 +55,7 @@ Ui.Card {
                 Layout.fillWidth: true
                 states: root.lightStates
                 value: root.levelToIndex(appState ? appState.lightStatus : 0)
-                onValueChanged: function(newIndex) { root.applyMain(newIndex) }
+                onValueUpdated: function(newIndex) { root.applyMain(newIndex) }
             }
         }
 
@@ -73,7 +73,7 @@ Ui.Card {
                 Layout.fillWidth: true
                 states: root.lightStates
                 value: root.levelToIndex(appState ? appState.light2Status : 0)
-                onValueChanged: function(newIndex) { root.applyAnte(newIndex) }
+                onValueUpdated: function(newIndex) { root.applyAnte(newIndex) }
             }
         }
     }

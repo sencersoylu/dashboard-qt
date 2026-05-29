@@ -40,7 +40,7 @@ Ui.Card {
             Layout.fillWidth: true
             states: root.twoState("Manuel", "Otomatik")
             value: (appState && appState.autoMode) ? 1 : 0
-            onValueChanged: function(newIndex) {
+            onValueUpdated: function(newIndex) {
                 plcClient.writeBit("M0201", newIndex)
                 appState.autoMode = (newIndex === 1)
             }
@@ -50,7 +50,7 @@ Ui.Card {
             Layout.fillWidth: true
             states: root.twoState("Hava", "Oksijen")
             value: (appState && appState.airMode) ? 1 : 0
-            onValueChanged: function(newIndex) {
+            onValueUpdated: function(newIndex) {
                 plcClient.writeBit("M0200", newIndex)
                 appState.airMode = (newIndex === 1)
             }
@@ -60,7 +60,7 @@ Ui.Card {
             Layout.fillWidth: true
             states: root.ventilStates
             value: appState ? appState.ventilMode : 0
-            onValueChanged: function(newIndex) { root.applyVentil(newIndex) }
+            onValueUpdated: function(newIndex) { root.applyVentil(newIndex) }
         }
 
         Ui.AppButton {

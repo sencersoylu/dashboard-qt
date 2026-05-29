@@ -10,7 +10,7 @@ Rectangle {
     property var states: []
     property bool enabledState: true
 
-    signal valueChanged(int newIndex)
+    signal valueUpdated(int newIndex)
 
     implicitHeight: 56
     implicitWidth: 320
@@ -72,7 +72,7 @@ Rectangle {
                     onClicked: {
                         if (index !== root.value) {
                             root.value = index
-                            root.valueChanged(index)
+                            root.valueUpdated(index)
                         }
                     }
                 }

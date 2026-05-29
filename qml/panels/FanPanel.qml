@@ -45,7 +45,7 @@ Ui.Card {
             Layout.fillWidth: true
             states: root.fanStates
             value: root.levelToIndex(appState ? appState.fan1Status : 0)
-            onValueChanged: function(newIndex) { root.apply(newIndex) }
+            onValueUpdated: function(newIndex) { root.apply(newIndex) }
         }
     }
 }

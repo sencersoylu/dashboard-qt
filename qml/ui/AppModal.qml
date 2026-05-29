@@ -13,7 +13,6 @@ Popup {
     property bool closeOnEscape: true
 
     default property alias content: contentColumn.data
-    signal closed()
 
     readonly property var widths: ({ sm: 400, md: 560, lg: 720, xl: 960 })
     readonly property int targetWidth: widths[size] || widths.md
@@ -22,8 +21,6 @@ Popup {
     focus: true
     closePolicy: (closeOnBackdropClick ? Popup.CloseOnPressOutside : Popup.NoAutoClose) |
                  (closeOnEscape ? Popup.CloseOnEscape : Popup.NoAutoClose)
-
-    onClosed: root.closed()
 
     anchors.centerIn: Overlay.overlay
     width: Math.min(targetWidth, parent ? parent.width - 48 : targetWidth)
