@@ -7,8 +7,9 @@ ApplicationWindow {
     id: window
     width: 1280
     height: 720
-    visibility: Window.Windowed
-    title: "RSP — Qt (Phase 2)"
+    visibility: Window.FullScreen
+    title: "RSP — Qt"
+    flags: Qt.FramelessWindowHint | Qt.Window
     color: Rsp.Theme.bg
 
     FontLoader { source: "../assets/fonts/Poppins-Regular.ttf" }
@@ -53,7 +54,7 @@ ApplicationWindow {
     StackView {
         id: stack
         anchors.fill: parent
-        initialItem: phase0Body
+        initialItem: "pages/Dashboard.qml"
     }
 
     Component {
