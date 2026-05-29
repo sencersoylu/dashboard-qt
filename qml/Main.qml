@@ -57,7 +57,17 @@ ApplicationWindow {
     StackView {
         id: stack
         anchors.fill: parent
-        initialItem: "pages/Dashboard.qml"
+        initialItem: splashComponent
+    }
+
+    Component {
+        id: splashComponent
+        Loader {
+            source: "pages/Splash.qml"
+            onLoaded: item.finished.connect(function() {
+                stack.replace("pages/Dashboard.qml")
+            })
+        }
     }
 
     Component {
