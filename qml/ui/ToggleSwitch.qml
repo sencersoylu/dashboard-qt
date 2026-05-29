@@ -22,9 +22,8 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: Rsp.Theme.animMed } }
 
     readonly property int pillMargin: 4
-    readonly property real pillWidth: states.length > 0
-        ? (width - pillMargin * 2) / states.length - pillMargin
-        : 0
+    readonly property real cellWidth: states.length > 0 ? width / states.length : 0
+    readonly property real pillWidth: Math.max(0, cellWidth - pillMargin * 2)
 
     Rectangle {
         id: pill
@@ -35,7 +34,7 @@ Rectangle {
                 ? root.states[root.value].color
                 : Rsp.Theme.slate500
         y: root.pillMargin
-        x: root.pillMargin + (root.pillWidth + root.pillMargin) * root.value
+        x: root.value * root.cellWidth + root.pillMargin
 
         Behavior on x     { NumberAnimation { duration: Rsp.Theme.animMed; easing.type: Easing.InOutCubic } }
         Behavior on color { ColorAnimation  { duration: Rsp.Theme.animMed } }

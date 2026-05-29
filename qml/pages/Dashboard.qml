@@ -59,49 +59,50 @@ Rectangle {
         anchors.leftMargin: 32
         anchors.rightMargin: 32
         anchors.topMargin: 24
+        anchors.bottomMargin: 24
 
-        // ----- Header (1216 × 64) -----
+        // ----- Header (page.width × 64) -----
         Panels.Header {
             id: header
             width: page.width
             height: 64
         }
 
-        // ----- Main grid (1216 × 441) at y = 64 + 24 -----
+        // ----- Main grid: fills remaining vertical space -----
         RowLayout {
             id: mainGrid
             anchors.top: header.bottom
             anchors.topMargin: 24
+            anchors.bottom: parent.bottom
             width: page.width
-            height: 441
             spacing: 24
 
-            // Column 1 — Chamber Control (286 × 441)
+            // Column 1 — Chamber Control (286 wide)
             Panels.ChamberControlPanel {
                 Layout.preferredWidth: 286
-                Layout.preferredHeight: 441
+                Layout.fillHeight: true
                 onChillerRequested: chillerModal.open()
             }
 
-            // Column 2 — Auxiliary Decompression (389 × 441)
+            // Column 2 — Auxiliary Decompression (389 wide)
             Panels.AuxiliaryOutputPanel {
                 Layout.preferredWidth: 389
-                Layout.preferredHeight: 441
+                Layout.fillHeight: true
             }
 
-            // Column 3 — Lighting (top, 493 × 209) + Fan (bottom, 493 × 209)
+            // Column 3 — Lighting (top) + Fan (bottom)
             ColumnLayout {
                 Layout.preferredWidth: 493
-                Layout.preferredHeight: 441
+                Layout.fillHeight: true
                 spacing: 24
 
                 Panels.LightingPanel {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 209
+                    Layout.fillHeight: true
                 }
                 Panels.FanPanel {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 209
+                    Layout.fillHeight: true
                 }
             }
         }

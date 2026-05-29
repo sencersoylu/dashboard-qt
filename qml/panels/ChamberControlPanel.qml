@@ -37,7 +37,9 @@ Ui.Card {
     ColumnLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        spacing: 24
+        spacing: 0
+
+        Item { Layout.fillHeight: true; Layout.minimumHeight: 4 }
 
         // ----- Manual / Automatic -----
         Ui.ToggleSwitch {
@@ -50,6 +52,8 @@ Ui.Card {
             onValueUpdated: function(newIndex) { root.toggleAuto() }
         }
 
+        Item { Layout.fillHeight: true; Layout.minimumHeight: 16 }
+
         // ----- Air / Oxygen (only enabled in auto mode) -----
         Ui.ToggleSwitch {
             Layout.fillWidth: true
@@ -61,6 +65,8 @@ Ui.Card {
             value: (appState && appState.airMode) ? 1 : 0
             onValueUpdated: function(newIndex) { root.toggleAir() }
         }
+
+        Item { Layout.fillHeight: true; Layout.minimumHeight: 16 }
 
         // ----- Ventil (only enabled in MANUAL mode) -----
         Ui.ToggleSwitch {
@@ -75,7 +81,7 @@ Ui.Card {
             onValueUpdated: function(newIndex) { root.setVentil(newIndex) }
         }
 
-        Item { Layout.fillHeight: true }
+        Item { Layout.fillHeight: true; Layout.minimumHeight: 16 }
 
         // ----- Chiller pill button -----
         Item {
