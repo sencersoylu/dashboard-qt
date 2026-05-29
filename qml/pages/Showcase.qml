@@ -126,6 +126,30 @@ Rectangle {
                     onClicked: demoModal.close()
                 }
             }
+
+            // ===== ToggleSwitch =======================================
+            Text {
+                text: "ToggleSwitch"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            Ui.ToggleSwitch {
+                Layout.preferredWidth: 320
+                states: [
+                    { "label": "Off", "color": Rsp.Theme.slate500 },
+                    { "label": "On",  "color": Rsp.Theme.emerald  }
+                ]
+            }
+            Ui.ToggleSwitch {
+                Layout.preferredWidth: 480
+                states: [
+                    { "label": "Air",   "color": Rsp.Theme.sky     },
+                    { "label": "Auto",  "color": Rsp.Theme.emerald },
+                    { "label": "Manual","color": Rsp.Theme.amber   }
+                ]
+            }
         }
     }
 
