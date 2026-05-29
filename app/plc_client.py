@@ -11,6 +11,7 @@ unit-tested without an event loop.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from typing import Any
 
@@ -83,11 +84,28 @@ class PlcClient(QObject):
         self._state.connected = False
         self.connectionChanged.emit(False)
 
+    @staticmethod
+    def _as_dict(payload: Any) -> dict | None:
+        """Bridge sends JSON-encoded strings on some events; mirror the
+        React app's `JSON.parse(data)` step. Returns None on anything that
+        isn't a dict or a JSON string that decodes to a dict."""
+        if isinstance(payload, dict):
+            return payload
+        if isinstance(payload, str):
+            try:
+                parsed = json.loads(payload)
+            except (ValueError, TypeError):
+                return None
+            if isinstance(parsed, dict):
+                return parsed
+        return None
+
     def _on_data_sync(self, payload: Any) -> None:
-        if not isinstance(payload, dict):
+        doc = self._as_dict(payload)
+        if doc is None:
             log.warning("PLC data: unexpected payload type %s", type(payload))
             return
-        data = payload.get("data") or []
+        data = doc.get("data") or []
         if not isinstance(data, list):
             log.warning("PLC data: 'data' is not a list")
             return
@@ -134,23 +152,26 @@ class PlcClient(QObject):
 
     def _on_chiller_data_sync(self, payload: Any) -> None:
         """Only `currentTemp` is used. `running` is read from data[29] instead."""
-        if not isinstance(payload, dict):
+        doc = self._as_dict(payload)
+        if doc is None:
             return
-        if "currentTemp" in payload:
-            self._state.chillerCurrentTemp = float(payload["currentTemp"]) / 10.0
+        if "currentTemp" in doc:
+            self._state.chillerCurrentTemp = float(doc["currentTemp"]) / 10.0
 
     def _on_calibration_sync(self, payload: Any) -> None:
-        if not isinstance(payload, dict):
+        doc = self._as_dict(payload)
+        if doc is None:
             return
-        if "progress" in payload:
-            self._state.calibrationProgress = int(payload["progress"])
-        if "status" in payload:
-            self._state.calibrationStatus = str(payload["status"])
+        if "progress" in doc:
+            self._state.calibrationProgress = int(doc["progress"])
+        if "status" in doc:
+            self._state.calibrationStatus = str(doc["status"])
 
     def _on_seat_alarm_sync(self, payload: Any) -> None:
-        if not isinstance(payload, dict):
+        doc = self._as_dict(payload)
+        if doc is None:
             return
-        self._state.activeSeatAlarm = payload
+        self._state.activeSeatAlarm = doc
         self._state.showSeatAlarmModal = True
 
     @Slot(str, int)
