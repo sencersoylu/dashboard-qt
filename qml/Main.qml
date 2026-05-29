@@ -39,6 +39,17 @@ ApplicationWindow {
         }
     }
 
+    Shortcut {
+        sequence: "Ctrl+1"
+        onActivated: {
+            if (stack.depth > 1) {
+                stack.pop()
+            } else {
+                stack.push("pages/Dashboard.qml")
+            }
+        }
+    }
+
     StackView {
         id: stack
         anchors.fill: parent
