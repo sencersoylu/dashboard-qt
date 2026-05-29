@@ -6,7 +6,7 @@ import ".." as Rsp
 Rectangle {
     id: root
 
-    implicitHeight: 96
+    implicitHeight: 100
     color: Rsp.Theme.bgPanel
     border.color: Rsp.Theme.border
     border.width: 1
@@ -19,8 +19,8 @@ Rectangle {
 
         Image {
             source: "../../assets/images/hipertech-logo.svg"
-            Layout.preferredHeight: 64
-            Layout.preferredWidth: 320
+            Layout.preferredHeight: 72
+            Layout.preferredWidth: 360
             fillMode: Image.PreserveAspectFit
             sourceSize: Qt.size(640, 128)
         }

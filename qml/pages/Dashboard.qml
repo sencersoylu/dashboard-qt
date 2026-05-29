@@ -7,7 +7,39 @@ import "../modals" as Modals
 
 Rectangle {
     id: root
-    color: Rsp.Theme.bg
+
+    gradient: Gradient {
+        orientation: Gradient.Vertical
+        GradientStop { position: 0.0; color: appState && appState.darkMode ? "#0f172a" : "#f8fafc" }
+        GradientStop { position: 0.5; color: appState && appState.darkMode ? "#0a0e1c" : "#ffffff" }
+        GradientStop { position: 1.0; color: appState && appState.darkMode ? "#020617" : "#f1f5f9" }
+    }
+
+    Rectangle {
+        visible: appState && appState.darkMode
+        x: -100; y: 100
+        width: 400; height: 400
+        radius: 200
+        color: Qt.rgba(0.05, 0.45, 0.85, 0.15)
+    }
+    Rectangle {
+        visible: appState && appState.darkMode
+        anchors.right: parent.right
+        anchors.rightMargin: -120
+        y: parent.height * 0.3
+        width: 360; height: 360
+        radius: 180
+        color: Qt.rgba(0.4, 0.2, 0.9, 0.10)
+    }
+    Rectangle {
+        visible: appState && appState.darkMode
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: -180
+        width: 500; height: 500
+        radius: 250
+        color: Qt.rgba(0.05, 0.7, 0.5, 0.08)
+    }
 
     Timer {
         interval: 1000

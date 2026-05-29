@@ -67,9 +67,9 @@ Ui.Card {
             Layout.fillWidth: true
             enabledState: !(appState && appState.autoMode)
             states: [
-                { "label": "Off",  "color": Rsp.Theme.slate500 },
-                { "label": "Low",  "color": "#3b82f6"          },
-                { "label": "High", "color": "#3b82f6"          }
+                { "label": "Ventil\nOff", "color": Rsp.Theme.slate500 },
+                { "label": "Low",         "color": "#3b82f6"          },
+                { "label": "High",        "color": "#3b82f6"          }
             ]
             value: appState ? appState.ventilMode : 0
             onValueUpdated: function(newIndex) { root.setVentil(newIndex) }

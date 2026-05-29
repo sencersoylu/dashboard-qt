@@ -62,6 +62,9 @@ Rectangle {
                                     ? Rsp.Theme.fontSizeMd
                                     : Rsp.Theme.fontSizeSm
                     font.weight: Font.DemiBold
+                    horizontalAlignment: Text.AlignHCenter
+                    lineHeight: 0.9
+                    wrapMode: Text.NoWrap
                     Behavior on color { ColorAnimation { duration: Rsp.Theme.animMed } }
                 }
 

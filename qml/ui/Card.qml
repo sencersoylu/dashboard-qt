@@ -13,9 +13,13 @@ Rectangle {
     property Component headerAction: null
 
     radius: Rsp.Theme.radiusLg
-    color: Rsp.Theme.bgPanel
+    color: appState && appState.darkMode
+           ? Qt.rgba(1, 1, 1, 0.05)
+           : Qt.rgba(1, 1, 1, 0.80)
     border.width: 1
-    border.color: Rsp.Theme.border
+    border.color: appState && appState.darkMode
+                  ? Qt.rgba(1, 1, 1, 0.10)
+                  : Qt.rgba(0.88, 0.91, 0.94, 1)
 
     implicitHeight: layoutColumn.implicitHeight
     implicitWidth: 400
@@ -59,7 +63,7 @@ Rectangle {
                     text: root.title
                     color: Rsp.Theme.text
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeLg
+                    font.pixelSize: Rsp.Theme.fontSizeXl
                     font.weight: Font.Bold
                     Layout.fillWidth: true
                 }
