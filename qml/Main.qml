@@ -9,8 +9,11 @@ ApplicationWindow {
     height: 720
     visibility: Window.FullScreen
     title: "RSP — Qt"
-    flags: Qt.FramelessWindowHint | Qt.Window
     color: Rsp.Theme.bg
+
+    // labwc + XWayland sometimes restores the prior windowed geometry on
+    // launch; force fullscreen once the window is actually on screen.
+    Component.onCompleted: window.showFullScreen()
 
     FontLoader { source: "../assets/fonts/Poppins-Regular.ttf" }
     FontLoader { source: "../assets/fonts/Poppins-Medium.ttf" }
