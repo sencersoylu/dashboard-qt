@@ -17,10 +17,10 @@ QtObject {
     }
 
     // One ApplicationWindow per entry in windowsConfig. Each gets its own
-    // page, its own screen, and its own shortcut set.
-    Component {
-        id: winComponent
-        ApplicationWindow {
+    // page, its own screen, and its own shortcut set. `property Component`
+    // with an inline element auto-wraps the element in a Component — the
+    // only form QtObject (which lacks a default property) accepts.
+    property Component winComponent: ApplicationWindow {
             id: win
 
             property var cfg
@@ -75,7 +75,6 @@ QtObject {
                 anchors.fill: parent
                 initialItem: Rectangle { color: Rsp.Theme.bg }
             }
-        }
     }
 
     Component.onCompleted: {
