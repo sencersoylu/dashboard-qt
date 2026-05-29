@@ -40,17 +40,34 @@ QtObject {
 
             Component.onCompleted: {
                 var screens = Qt.application.screens
-                var idx = (cfg && cfg.display !== undefined) ? cfg.display : 0
-                if (idx >= screens.length) {
-                    console.warn("Window '" + (cfg ? cfg.id : "?") + "' wants display "
-                                 + idx + " but only " + screens.length
-                                 + " available — falling back to 0")
-                    idx = 0
+                var wanted = (cfg && cfg.display !== undefined) ? cfg.display : 0
+                var target = null
+                // Name-based lookup is stable across reboots (HDMI port
+                // enumeration order can change). Index is the fallback.
+                if (typeof wanted === "string") {
+                    for (var s = 0; s < screens.length; s++) {
+                        if (screens[s].name === wanted) { target = screens[s]; break }
+                    }
+                    if (!target) {
+                        console.warn("Window '" + (cfg ? cfg.id : "?") + "' wants screen '"
+                                     + wanted + "' — not found. Available: "
+                                     + screens.map(function(x){ return x.name }).join(", ")
+                                     + ". Falling back to screen 0.")
+                        target = screens[0]
+                    }
+                } else {
+                    var idx = wanted
+                    if (idx >= screens.length) {
+                        console.warn("Window '" + (cfg ? cfg.id : "?") + "' wants display "
+                                     + idx + " but only " + screens.length
+                                     + " available — falling back to 0")
+                        idx = 0
+                    }
+                    target = screens[idx]
                 }
-                var target = screens[idx]
-                console.log("Window '" + (cfg ? cfg.id : "?") + "' → screen "
-                            + idx + " (" + target.name + ") at "
-                            + target.virtualX + "," + target.virtualY)
+                console.log("Window '" + (cfg ? cfg.id : "?") + "' → "
+                            + target.name + " at " + target.virtualX + "," + target.virtualY
+                            + " (all: " + screens.map(function(x){ return x.name }).join(", ") + ")")
                 // Move the window into the target screen's bounds *before*
                 // showing it. labwc fullscreens whatever monitor contains
                 // the window's top-left corner, so the position is what
