@@ -46,6 +46,7 @@ class PlcClient(QObject):
             reconnection=True,
             reconnection_delay=1,
             reconnection_delay_max=5,
+            randomization_factor=0.5,
         )
         self._sio.on("connect", self._on_connect)
         self._sio.on("disconnect", self._on_disconnect)
@@ -53,10 +54,22 @@ class PlcClient(QObject):
         self._sio.on("chillerData", self._on_chiller_data)
         self._sio.on("calibrationProgress", self._on_calibration)
         self._sio.on("seatAlarm", self._on_seat_alarm)
-        try:
-            await self._sio.connect(url, transports=["websocket", "polling"])
-        except Exception as exc:
-            log.warning("PLC initial connect failed (library will keep retrying): %s", exc)
+        # Spawn a background task that keeps retrying the initial connect
+        # until it lands. Once connected, python-socketio's own reconnection
+        # loop takes over for any later drops.
+        asyncio.create_task(self._connect_forever(url))
+
+    async def _connect_forever(self, url: str) -> None:
+        delay = 1.0
+        while self._sio is not None and not self._sio.connected:
+            try:
+                await self._sio.connect(url, transports=["websocket", "polling"])
+                log.info("PLC connected to %s", url)
+                return
+            except Exception as exc:
+                log.warning("PLC connect to %s failed: %s — retry in %.1fs", url, exc, delay)
+                await asyncio.sleep(delay)
+                delay = min(delay * 1.7, 30.0)
 
     async def _on_connect(self) -> None:
         self._on_connect_sync()

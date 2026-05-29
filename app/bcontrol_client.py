@@ -32,10 +32,19 @@ class BControlClient(QObject):
         self._sio.on("disconnect", lambda: self.connectionChanged.emit(False))
         self._sio.on("telemetry", self._on_telemetry)
         self._sio.on("status", self._on_status)
-        try:
-            await self._sio.connect(url, transports=["websocket", "polling"])
-        except Exception as exc:
-            log.warning("B-Control initial connect failed: %s", exc)
+        asyncio.create_task(self._connect_forever(url))
+
+    async def _connect_forever(self, url: str) -> None:
+        delay = 1.0
+        while self._sio is not None and not self._sio.connected:
+            try:
+                await self._sio.connect(url, transports=["websocket", "polling"])
+                log.info("B-Control connected to %s", url)
+                return
+            except Exception as exc:
+                log.warning("B-Control connect to %s failed: %s — retry in %.1fs", url, exc, delay)
+                await asyncio.sleep(delay)
+                delay = min(delay * 1.7, 30.0)
 
     async def _on_telemetry(self, payload: Any) -> None:
         self._on_telemetry_sync(payload)

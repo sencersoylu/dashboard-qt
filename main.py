@@ -27,6 +27,19 @@ logging.basicConfig(
 log = logging.getLogger("rsp-qt")
 
 
+# engineio's reconnect loop emits a stream of
+#   ERROR engineio.client: packet queue is empty, aborting
+# every time the socket transport blips. The library reconnects on its own
+# and the message is harmless noise — drop it so the operator-facing log
+# stays readable. Real disconnects still surface via app.plc_client.
+class _DropEngineIOQueueAbort(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "packet queue is empty" not in record.getMessage()
+
+
+logging.getLogger("engineio.client").addFilter(_DropEngineIOQueueAbort())
+
+
 def main() -> int:
     app = QGuiApplication(sys.argv)
     loop = qasync.QEventLoop(app)
