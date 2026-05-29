@@ -163,6 +163,20 @@ Rectangle {
             Ui.AppSlider { Layout.preferredWidth: 480; label: "Temp";       value: 22;  color: "emerald"; min: 0; max: 40 }
             Ui.AppSlider { Layout.preferredWidth: 480; label: "Warning";    value: 80;  color: "amber";   size: "lg" }
             Ui.AppSlider { Layout.preferredWidth: 480; label: "Disabled";   value: 50;  color: "rose";    enabledState: false }
+
+            // ===== SeatGrid ===========================================
+            Text {
+                text: "SeatGrid"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            Ui.SeatGrid {
+                Layout.preferredWidth: 720
+                Layout.preferredHeight: 176
+                pressures: [0.50, 0.55, 0.48, 0.51, 0.60, 0.47,  0.53, 0.49, 0.52, 0.50, 0.46, 0.54]
+            }
         }
     }
 
