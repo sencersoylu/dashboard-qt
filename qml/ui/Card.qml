@@ -21,7 +21,7 @@ Rectangle {
                   ? Qt.rgba(1, 1, 1, 0.10)
                   : Qt.rgba(0.88, 0.91, 0.94, 1)
 
-    implicitHeight: layoutColumn.implicitHeight
+    implicitHeight: 209   // sensible fallback for Lighting-style; parent typically overrides
     implicitWidth: 400
 
     transform: Translate { id: lift; y: hoverable && hoverArea.containsMouse ? -4 : 0
@@ -44,7 +44,7 @@ Rectangle {
 
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? 64 : 0
+            Layout.preferredHeight: visible ? 61 : 0
             visible: root.title !== ""
 
             Rectangle {
@@ -58,6 +58,8 @@ Rectangle {
                 anchors.fill: parent
                 anchors.leftMargin: 24
                 anchors.rightMargin: 24
+                anchors.topMargin: 16
+                anchors.bottomMargin: 16
 
                 Text {
                     text: root.title
@@ -77,7 +79,7 @@ Rectangle {
 
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: root.isLoading ? loadingSkeleton.height : contentColumn.implicitHeight + 48
+            Layout.fillHeight: true
 
             ColumnLayout {
                 id: contentColumn

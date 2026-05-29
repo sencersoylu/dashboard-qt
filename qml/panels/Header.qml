@@ -88,13 +88,8 @@ Rectangle {
                 anchors.fill: parent
                 anchors.leftMargin: 16
                 anchors.rightMargin: 16
-                spacing: 12
+                spacing: 8
 
-                Text {
-                    text: "🗓"
-                    color: Rsp.Theme.textMuted
-                    font.pixelSize: 14
-                }
                 Text {
                     text: appState ? appState.currentTime2 : ""
                     color: Rsp.Theme.text
@@ -103,12 +98,7 @@ Rectangle {
                     font.weight: Font.Medium
                 }
                 Text {
-                    text: "·"
-                    color: Rsp.Theme.textMuted
-                    font.pixelSize: 14
-                }
-                Text {
-                    text: "🕐"
+                    text: "•"
                     color: Rsp.Theme.textMuted
                     font.pixelSize: 14
                 }
