@@ -18,12 +18,16 @@ QtObject {
 
     // One ApplicationWindow per entry in windowsConfig. Each gets its own
     // page, its own screen, and its own shortcut set.
-    property Component winComponent: Component {
+    Component {
+        id: winComponent
         ApplicationWindow {
             id: win
 
             property var cfg
-            property string pageUrl: cfg ? "pages/" + cfg.page + ".qml" : ""
+            // Splash.qml lives in qml/pages/, so URLs resolve relative to
+            // that directory. We pass `<page>.qml` (no "pages/" prefix) to
+            // avoid the double-pages path issue.
+            property string pageUrl: cfg ? cfg.page + ".qml" : ""
 
             width: 1280
             height: 720
