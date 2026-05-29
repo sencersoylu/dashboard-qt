@@ -30,7 +30,10 @@ Ui.Card {
 
     ColumnLayout {
         Layout.fillWidth: true
+        Layout.fillHeight: true
         spacing: 16
+
+        Item { Layout.fillHeight: true }
 
         RowLayout {
             Layout.fillWidth: true
@@ -69,5 +72,7 @@ Ui.Card {
                 onValueUpdated: function(newIndex) { root.applyAnte(newIndex) }
             }
         }
+
+        Item { Layout.fillHeight: true }
     }
 }

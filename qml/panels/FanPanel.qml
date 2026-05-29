@@ -23,22 +23,31 @@ Ui.Card {
         { "label": "High", "color": "#3b82f6"          }
     ]
 
-    RowLayout {
+    ColumnLayout {
         Layout.fillWidth: true
-        spacing: 16
-        Text {
-            text: "Main"
-            color: Rsp.Theme.text
-            font.family: Rsp.Theme.fontFamily
-            font.pixelSize: Rsp.Theme.fontSizeMd
-            font.weight: Font.DemiBold
-            Layout.preferredWidth: 64
-        }
-        Ui.ToggleSwitch {
+        Layout.fillHeight: true
+
+        Item { Layout.fillHeight: true }
+
+        RowLayout {
             Layout.fillWidth: true
-            states: root.fanStates
-            value: appState ? appState.fan1Status : 0
-            onValueUpdated: function(newIndex) { root.apply(newIndex) }
+            spacing: 16
+            Text {
+                text: "Main"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeMd
+                font.weight: Font.DemiBold
+                Layout.preferredWidth: 64
+            }
+            Ui.ToggleSwitch {
+                Layout.fillWidth: true
+                states: root.fanStates
+                value: appState ? appState.fan1Status : 0
+                onValueUpdated: function(newIndex) { root.apply(newIndex) }
+            }
         }
+
+        Item { Layout.fillHeight: true }
     }
 }

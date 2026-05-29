@@ -47,13 +47,14 @@ Rectangle {
 
         Rectangle {
             implicitHeight: 38
-            implicitWidth: connText.implicitWidth + 32
+            implicitWidth: connRow.implicitWidth + 32
             radius: 19
             color: (appState && appState.connected)
                    ? Qt.rgba(0.063, 0.725, 0.506, 0.20)
                    : Qt.rgba(0.937, 0.267, 0.267, 0.20)
 
             RowLayout {
+                id: connRow
                 anchors.fill: parent
                 anchors.leftMargin: 16
                 anchors.rightMargin: 16
