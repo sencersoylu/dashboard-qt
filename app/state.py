@@ -201,91 +201,78 @@ class AppState(QObject):
             self._settings.sync()
         signal.emit()
 
+    # ============== Build Properties inside class body ==============
+    # locals()[name] = Property(...) ensures Shiboken's QObject metaclass
+    # registers each Property in the QMetaObject, so QML can see them.
+    _SCALAR_TYPES = {
+        "darkMode": bool, "connected": bool, "currentTime": str, "currentTime2": str,
+        "showAuxPanel": bool, "showCalibrationModal": bool, "showErrorModal": bool,
+        "showSeatAlarmModal": bool, "showChillerModal": bool,
+        "calibrationProgress": int, "calibrationStatus": str, "errorMessage": str,
+        "lightStatus": int, "light2Status": int, "fan1Status": int, "fan2Status": int,
+        "autoMode": bool, "airMode": bool, "ventilMode": int,
+        "valve1Status": bool, "valve2Status": bool, "playing": bool,
+        "chillerRunning": bool, "chillerCurrentTemp": float, "chillerSetTemp": float,
+        "chillerCommError": bool,
+        "lp1Status": bool, "lp2Status": bool, "hp1Status": bool,
+        "hpCylinderPressure": float, "airTankPressure": float,
+        "nitrogen1Pressure": float, "nitrogen2Pressure": float,
+        "mainFssLevel": float, "mainFssPressure": float, "mainFssActive": bool,
+        "anteFssLevel": float, "anteFssPressure": float, "anteFssActive": bool,
+        "anteFssWarning": bool,
+        "primaryO2Pressure": float, "secondaryO2Pressure": float, "liquidO2Pressure": float,
+        "primaryO2Active": bool, "secondaryO2Active": bool, "liquidO2Active": bool,
+        "mainFssAlarm": bool, "anteFssAlarm": bool,
+        "mainFlameDetected": bool, "mainSmokeDetected": bool, "anteSmokeDetected": bool,
+        "mainHighO2": bool, "anteHighO2": bool,
+        "mainPressure": float, "mainO2": float, "mainTemp": float, "mainHumidity": float,
+        "antePressure": float, "anteO2": float, "anteTemp": float, "anteHumidity": float,
+        "techO2Pressure": float, "anteFssNitrogenPressure": float,
+    }
 
-# Programmatically attach a Property for each declared signal. This avoids
-# 50 nearly-identical @Property blocks while keeping QML introspection happy.
-_SCALAR_TYPES: dict[str, type] = {
-    "darkMode": bool, "connected": bool, "currentTime": str, "currentTime2": str,
-    "showAuxPanel": bool, "showCalibrationModal": bool, "showErrorModal": bool,
-    "showSeatAlarmModal": bool, "showChillerModal": bool,
-    "calibrationProgress": int, "calibrationStatus": str, "errorMessage": str,
-    "lightStatus": int, "light2Status": int, "fan1Status": int, "fan2Status": int,
-    "autoMode": bool, "airMode": bool, "ventilMode": int,
-    "valve1Status": bool, "valve2Status": bool, "playing": bool,
-    "chillerRunning": bool, "chillerCurrentTemp": float, "chillerSetTemp": float,
-    "chillerCommError": bool,
-    "lp1Status": bool, "lp2Status": bool, "hp1Status": bool,
-    "hpCylinderPressure": float, "airTankPressure": float,
-    "nitrogen1Pressure": float, "nitrogen2Pressure": float,
-    "mainFssLevel": float, "mainFssPressure": float, "mainFssActive": bool,
-    "anteFssLevel": float, "anteFssPressure": float, "anteFssActive": bool,
-    "anteFssWarning": bool,
-    "primaryO2Pressure": float, "secondaryO2Pressure": float, "liquidO2Pressure": float,
-    "primaryO2Active": bool, "secondaryO2Active": bool, "liquidO2Active": bool,
-    "mainFssAlarm": bool, "anteFssAlarm": bool,
-    "mainFlameDetected": bool, "mainSmokeDetected": bool, "anteSmokeDetected": bool,
-    "mainHighO2": bool, "anteHighO2": bool,
-    # New Qt-only sensor fields (all raw floats; calibration in Phase 2)
-    "mainPressure": float, "mainO2": float, "mainTemp": float, "mainHumidity": float,
-    "antePressure": float, "anteO2": float, "anteTemp": float, "anteHumidity": float,
-    "techO2Pressure": float, "anteFssNitrogenPressure": float,
-}
+    def _build_prop(_name, _ty, _sig):
+        def _get(self):
+            return getattr(self, f"_{_name}")
 
+        def _set_outer(self, v):
+            self._set(_name, v, getattr(self, f"{_name}Changed"))
 
-def _make_property(name: str, py_type: type) -> Property:
-    signal_name = f"{name}Changed"
-    signal = getattr(AppState, signal_name)
+        return Property(_ty, _get, _set_outer, notify=_sig)
 
-    def _getter(self):
-        return getattr(self, f"_{name}")
+    for _field, _type in _SCALAR_TYPES.items():
+        _signal = locals()[f"{_field}Changed"]
+        locals()[_field] = _build_prop(_field, _type, _signal)
 
-    def _setter(self, value):
-        # Resolve the *bound* signal on the instance (the class-level
-        # attribute is an unbound Signal descriptor without .emit()).
-        self._set(name, value, getattr(self, signal_name))
+    # Cleanup loop vars so they don't become class attributes.
+    del _field, _type, _signal, _build_prop, _SCALAR_TYPES
 
-    return Property(py_type, _getter, _setter, notify=signal)
+    # ---- seatPressures (QVariantList) ----
+    def _seat_pressures_get(self):
+        return list(self._seatPressures)
 
+    def _seat_pressures_set(self, value):
+        new = [float(x) for x in value]
+        if new == self._seatPressures:
+            return
+        self._seatPressures = new
+        self.seatPressuresChanged.emit()
 
-for _name, _ty in _SCALAR_TYPES.items():
-    setattr(AppState, _name, _make_property(_name, _ty))
+    seatPressures = Property(
+        "QVariantList", _seat_pressures_get, _seat_pressures_set,
+        notify=seatPressuresChanged,
+    )
 
+    # ---- activeSeatAlarm (QVariant) ----
+    def _alarm_get(self):
+        return self._activeSeatAlarm
 
-# seatPressures (list[float]) and activeSeatAlarm (dict|None) — handled as `object`
-def _seat_pressures_getter(self):
-    return list(self._seatPressures)
+    def _alarm_set(self, value):
+        if value == self._activeSeatAlarm:
+            return
+        self._activeSeatAlarm = value
+        self.activeSeatAlarmChanged.emit()
 
-
-def _seat_pressures_setter(self, value):
-    new = [float(x) for x in value]
-    if new == self._seatPressures:
-        return
-    self._seatPressures = new
-    self.seatPressuresChanged.emit()
-
-
-AppState.seatPressures = Property(  # type: ignore[assignment]
-    "QVariantList",
-    _seat_pressures_getter,
-    _seat_pressures_setter,
-    notify=AppState.seatPressuresChanged,
-)
-
-
-def _alarm_getter(self):
-    return self._activeSeatAlarm
-
-
-def _alarm_setter(self, value):
-    if value == self._activeSeatAlarm:
-        return
-    self._activeSeatAlarm = value
-    self.activeSeatAlarmChanged.emit()
-
-
-AppState.activeSeatAlarm = Property(  # type: ignore[assignment]
-    "QVariant",
-    _alarm_getter,
-    _alarm_setter,
-    notify=AppState.activeSeatAlarmChanged,
-)
+    activeSeatAlarm = Property(
+        "QVariant", _alarm_get, _alarm_set,
+        notify=activeSeatAlarmChanged,
+    )
