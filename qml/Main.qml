@@ -33,29 +33,37 @@ QtObject {
             height: 720
             title: cfg ? "RSP — " + cfg.id : "RSP"
             color: Rsp.Theme.bg
-            visibility: (cfg && cfg.fullscreen === false)
-                        ? Window.Windowed
-                        : Window.FullScreen
+            // Stay hidden until Component.onCompleted has placed us on the
+            // correct screen — otherwise the FullScreen request fires on
+            // the default monitor and labwc never re-homes the surface.
+            visibility: Window.Hidden
 
-            // labwc + XWayland sometimes restores the prior geometry; force
-            // the configured visibility once on screen.
             Component.onCompleted: {
-                if (cfg && cfg.display !== undefined) {
-                    var screens = Qt.application.screens
-                    if (screens.length > cfg.display) {
-                        win.screen = screens[cfg.display]
-                    } else {
-                        console.warn("Window '" + cfg.id + "' wants display "
-                                     + cfg.display + " but only "
-                                     + screens.length + " available — falling back to 0")
-                        win.screen = screens[0]
-                    }
+                var screens = Qt.application.screens
+                var idx = (cfg && cfg.display !== undefined) ? cfg.display : 0
+                if (idx >= screens.length) {
+                    console.warn("Window '" + (cfg ? cfg.id : "?") + "' wants display "
+                                 + idx + " but only " + screens.length
+                                 + " available — falling back to 0")
+                    idx = 0
                 }
+                var target = screens[idx]
+                console.log("Window '" + (cfg ? cfg.id : "?") + "' → screen "
+                            + idx + " (" + target.name + ") at "
+                            + target.virtualX + "," + target.virtualY)
+                // Move the window into the target screen's bounds *before*
+                // showing it. labwc fullscreens whatever monitor contains
+                // the window's top-left corner.
+                win.x = target.virtualX
+                win.y = target.virtualY
+                win.width = target.geometry.width
+                win.height = target.geometry.height
+                win.screen = target
                 if (!cfg || cfg.fullscreen !== false) {
                     win.showFullScreen()
+                } else {
+                    win.show()
                 }
-                // Splash → real page handover happens inside the splash
-                // component itself via its `finished` signal.
                 stack.replace("pages/Splash.qml", { nextPage: win.pageUrl })
             }
 
