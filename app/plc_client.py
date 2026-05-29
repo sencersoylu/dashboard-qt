@@ -54,8 +54,8 @@ class PlcClient(QObject):
         self._sio.on("seatAlarm", self._on_seat_alarm)
         try:
             await self._sio.connect(url, transports=["websocket", "polling"])
-        except Exception:
-            log.exception("PLC initial connect failed; library will keep retrying")
+        except Exception as exc:
+            log.warning("PLC initial connect failed (library will keep retrying): %s", exc)
 
     async def _on_connect(self) -> None:
         self._on_connect_sync()

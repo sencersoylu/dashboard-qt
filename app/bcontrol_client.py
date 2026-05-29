@@ -34,8 +34,8 @@ class BControlClient(QObject):
         self._sio.on("status", self._on_status)
         try:
             await self._sio.connect(url, transports=["websocket", "polling"])
-        except Exception:
-            log.exception("B-Control initial connect failed")
+        except Exception as exc:
+            log.warning("B-Control initial connect failed: %s", exc)
 
     async def _on_telemetry(self, payload: Any) -> None:
         self._on_telemetry_sync(payload)

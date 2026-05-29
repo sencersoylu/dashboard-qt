@@ -34,8 +34,8 @@ class VitalsClient(QObject):
         self._sio.on("serialData", self._on_serial_data)
         try:
             await self._sio.connect(url, transports=["websocket", "polling"])
-        except Exception:
-            log.exception("vitals initial connect failed")
+        except Exception as exc:
+            log.warning("vitals initial connect failed: %s", exc)
 
     async def _on_vital_signs(self, payload: Any) -> None:
         self._on_vital_signs_sync(payload)
