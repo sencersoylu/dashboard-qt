@@ -1,107 +1,86 @@
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls
-import QtQuick.Layouts
 import "." as Rsp
 
-ApplicationWindow {
-    id: window
-    width: 1280
-    height: 720
-    visibility: Window.FullScreen
-    title: "RSP — Qt"
-    color: Rsp.Theme.bg
+QtObject {
+    id: root
 
-    // labwc + XWayland sometimes restores the prior windowed geometry on
-    // launch; force fullscreen once the window is actually on screen.
-    Component.onCompleted: window.showFullScreen()
-
-    FontLoader { source: "../assets/fonts/Poppins-Regular.ttf" }
-    FontLoader { source: "../assets/fonts/Poppins-Medium.ttf" }
-    FontLoader { source: "../assets/fonts/Poppins-SemiBold.ttf" }
-    FontLoader { source: "../assets/fonts/Poppins-Bold.ttf" }
-
-    Shortcut {
-        sequence: "F11"
-        onActivated: window.visibility = (window.visibility === Window.FullScreen)
-                                         ? Window.Windowed
-                                         : Window.FullScreen
+    // Shared FontLoaders — must live somewhere top-level. Stay loaded for
+    // the lifetime of the process; all child windows inherit the Poppins
+    // family.
+    property var fonts: QtObject {
+        readonly property var regular:  FontLoader { source: "../assets/fonts/Poppins-Regular.ttf" }
+        readonly property var medium:   FontLoader { source: "../assets/fonts/Poppins-Medium.ttf" }
+        readonly property var semibold: FontLoader { source: "../assets/fonts/Poppins-SemiBold.ttf" }
+        readonly property var bold:     FontLoader { source: "../assets/fonts/Poppins-Bold.ttf" }
     }
 
-    Shortcut {
-        sequence: "Ctrl+D"
-        onActivated: appState.darkMode = !appState.darkMode
-    }
+    // One ApplicationWindow per entry in windowsConfig. Each gets its own
+    // page, its own screen, and its own shortcut set.
+    property Component winComponent: Component {
+        ApplicationWindow {
+            id: win
 
-    Shortcut {
-        sequence: "Ctrl+S"
-        onActivated: {
-            if (stack.depth > 1) {
-                stack.pop()
-            } else {
-                stack.push("pages/Showcase.qml")
-            }
-        }
-    }
+            property var cfg
+            property string pageUrl: cfg ? "pages/" + cfg.page + ".qml" : ""
 
-    Shortcut {
-        sequence: "Ctrl+1"
-        onActivated: {
-            if (stack.depth > 1) {
-                stack.pop()
-            } else {
-                stack.push("pages/Dashboard.qml")
-            }
-        }
-    }
-
-    StackView {
-        id: stack
-        anchors.fill: parent
-        initialItem: splashComponent
-    }
-
-    Component {
-        id: splashComponent
-        Loader {
-            source: "pages/Splash.qml"
-            onLoaded: item.finished.connect(function() {
-                stack.replace("pages/Dashboard.qml")
-            })
-        }
-    }
-
-    Component {
-        id: phase0Body
-        Rectangle {
+            width: 1280
+            height: 720
+            title: cfg ? "RSP — " + cfg.id : "RSP"
             color: Rsp.Theme.bg
+            visibility: (cfg && cfg.fullscreen === false)
+                        ? Window.Windowed
+                        : Window.FullScreen
 
-            ColumnLayout {
-                anchors.centerIn: parent
-                spacing: Rsp.Theme.spacingMd
-
-                Text {
-                    text: "RSP Qt — Phase 2"
-                    color: Rsp.Theme.text
-                    font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeXl
-                    font.weight: Font.Bold
-                    Layout.alignment: Qt.AlignHCenter
+            // labwc + XWayland sometimes restores the prior geometry; force
+            // the configured visibility once on screen.
+            Component.onCompleted: {
+                if (cfg && cfg.display !== undefined) {
+                    var screens = Qt.application.screens
+                    if (screens.length > cfg.display) {
+                        win.screen = screens[cfg.display]
+                    } else {
+                        console.warn("Window '" + cfg.id + "' wants display "
+                                     + cfg.display + " but only "
+                                     + screens.length + " available — falling back to 0")
+                        win.screen = screens[0]
+                    }
                 }
-                Text {
-                    text: "F11: fullscreen · Ctrl+D: dark mode · Ctrl+S: Showcase"
-                    color: Rsp.Theme.textMuted
-                    font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeMd
-                    Layout.alignment: Qt.AlignHCenter
+                if (!cfg || cfg.fullscreen !== false) {
+                    win.showFullScreen()
                 }
-                Text {
-                    text: "Dark mode: " + (Rsp.Theme.dark ? "ON" : "OFF")
-                    color: Rsp.Theme.emerald
-                    font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: Rsp.Theme.fontSizeLg
-                    Layout.alignment: Qt.AlignHCenter
-                }
+                // Splash → real page handover happens inside the splash
+                // component itself via its `finished` signal.
+                stack.replace("pages/Splash.qml", { nextPage: win.pageUrl })
             }
+
+            Shortcut {
+                sequence: "F11"
+                onActivated: win.visibility = (win.visibility === Window.FullScreen)
+                                              ? Window.Windowed
+                                              : Window.FullScreen
+            }
+            Shortcut {
+                sequence: "Ctrl+D"
+                onActivated: appState.darkMode = !appState.darkMode
+            }
+
+            StackView {
+                id: stack
+                anchors.fill: parent
+                initialItem: Rectangle { color: Rsp.Theme.bg }
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        if (typeof windowsConfig === "undefined" || windowsConfig.length === 0) {
+            console.warn("windowsConfig empty — no windows will be created")
+            return
+        }
+        for (var i = 0; i < windowsConfig.length; i++) {
+            winComponent.createObject(root, { cfg: windowsConfig[i] })
         }
     }
 }

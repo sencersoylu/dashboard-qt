@@ -6,6 +6,10 @@ import ".." as Rsp
 Rectangle {
     id: root
 
+    // The StackView push call passes the URL of the page to replace this
+    // splash with once the timer + fade-out finishes.
+    property string nextPage: "pages/Dashboard.qml"
+
     signal finished()
 
     // ----- Background (matches Dashboard gradient so the handover is seamless)
@@ -97,6 +101,13 @@ Rectangle {
         from: 1.0; to: 0.0
         duration: 400
         easing.type: Easing.InCubic
-        onFinished: root.finished()
+        onFinished: {
+            root.finished()
+            // If a StackView owns us, replace ourselves with the configured
+            // next page so the parent doesn't need to wire up a signal.
+            if (root.StackView.view) {
+                root.StackView.view.replace(root.nextPage)
+            }
+        }
     }
 }

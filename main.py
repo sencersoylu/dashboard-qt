@@ -1,4 +1,9 @@
-"""Phase 1 bootstrap: AppState + four async clients on the qasync loop."""
+"""Phase 1 bootstrap: AppState + async clients on the qasync loop.
+
+Each launch reads `~/.config/rsp-qt/windows-config.json` to decide which
+pages open on which displays — and only starts the backend clients that
+those pages actually need.
+"""
 
 from __future__ import annotations
 
@@ -11,6 +16,7 @@ import qasync
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
+from app import window_config
 from app.bcontrol_client import BControlClient
 from app.plc_client import PlcClient
 from app.rest_client import RestClient
@@ -45,11 +51,19 @@ def main() -> int:
     loop = qasync.QEventLoop(app)
     asyncio.set_event_loop(loop)
 
+    cfg = window_config.load()
+    needed = window_config.required_clients(cfg)
+    log.info(
+        "Windows: %s; clients needed: %s",
+        [w.get("id") for w in cfg["windows"]],
+        sorted(needed) or "(none)",
+    )
+
     state = AppState()
-    plc = PlcClient(state)
-    bcontrol = BControlClient()
-    vitals = VitalsClient()
-    rest = RestClient()
+    plc = PlcClient(state) if "plc" in needed else None
+    bcontrol = BControlClient() if "bcontrol" in needed else None
+    vitals = VitalsClient() if "vitals" in needed else None
+    rest = RestClient()  # cheap, no socket — keep available for any page
 
     engine = QQmlApplicationEngine()
     engine.addImportPath(str(QML_DIR))
@@ -59,15 +73,19 @@ def main() -> int:
     ctx.setContextProperty("bcontrolClient", bcontrol)
     ctx.setContextProperty("vitalsClient", vitals)
     ctx.setContextProperty("restClient", rest)
+    ctx.setContextProperty("windowsConfig", cfg["windows"])
     engine.load(QML_DIR / "Main.qml")
 
     if not engine.rootObjects():
         log.error("QML failed to load")
         return 1
 
-    loop.create_task(plc.start())
-    loop.create_task(bcontrol.start())
-    loop.create_task(vitals.start())
+    if plc is not None:
+        loop.create_task(plc.start())
+    if bcontrol is not None:
+        loop.create_task(bcontrol.start())
+    if vitals is not None:
+        loop.create_task(vitals.start())
 
     with loop:
         return loop.run_forever() or 0
