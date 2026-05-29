@@ -54,6 +54,46 @@ Rectangle {
                 Ui.AppButton { text: "Small";    variant: "success"; size: "sm" }
                 Ui.AppButton { text: "Large";    variant: "danger"; size: "lg" }
             }
+
+            // ===== Card ===============================================
+            Text {
+                text: "Card"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 16
+
+                Ui.Card {
+                    Layout.preferredWidth: 320
+                    title: "Plain card"
+                    Text {
+                        text: "Body content."
+                        color: Rsp.Theme.text
+                        font.family: Rsp.Theme.fontFamily
+                    }
+                }
+
+                Ui.Card {
+                    Layout.preferredWidth: 320
+                    title: "Hoverable"
+                    hoverable: true
+                    Text {
+                        text: "Hover me."
+                        color: Rsp.Theme.text
+                        font.family: Rsp.Theme.fontFamily
+                    }
+                }
+
+                Ui.Card {
+                    Layout.preferredWidth: 320
+                    title: "Loading"
+                    isLoading: true
+                }
+            }
         }
     }
 
