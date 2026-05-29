@@ -177,6 +177,22 @@ Rectangle {
                 Layout.preferredHeight: 176
                 pressures: [0.50, 0.55, 0.48, 0.51, 0.60, 0.47,  0.53, 0.49, 0.52, 0.50, 0.46, 0.54]
             }
+
+            // ===== PressureTank =======================================
+            Text {
+                text: "PressureTank"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 32
+                Ui.PressureTank { type: "air";      label: "Air Tank"; subLabel: "2000 L"; pressure: 12.5 }
+                Ui.PressureTank { type: "nitrogen"; label: "N₂";       pressure: 120 }
+                Ui.PressureTank { type: "cylinder"; label: "O₂ Bank";  pressure: 245 }
+            }
         }
     }
 
