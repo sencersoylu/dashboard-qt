@@ -6,75 +6,90 @@ import "../ui" as Ui
 
 Ui.Card {
     id: root
-    title: "Yardımcı Çıkışlar"
-    implicitWidth: 400
+    title: "Auxiliary Decompression"
+    implicitWidth: 380
 
-    property int valve1Index: 0
-    property int valve2Index: 0
-
-    function applyValve(index, openReg, closeReg) {
-        if (index === 0) {
-            plcClient.writeBit(openReg,  0)
-            plcClient.writeBit(closeReg, 0)
-        } else if (index === 1) {
-            plcClient.writeBit(openReg,  1)
-            plcClient.writeBit(closeReg, 0)
+    function toggleValve1() {
+        const newValue = (appState && appState.valve1Status) ? 0 : 1
+        if (newValue === 0) {
+            plcClient.writeBit("M0501", 0); plcClient.writeBit("M0500", 1)
         } else {
-            plcClient.writeBit(openReg,  0)
-            plcClient.writeBit(closeReg, 1)
+            plcClient.writeBit("M0500", 0); plcClient.writeBit("M0501", 1)
         }
+        appState.valve1Status = !appState.valve1Status
+    }
+
+    function toggleValve2() {
+        const newValue = (appState && appState.valve2Status) ? 0 : 1
+        if (newValue === 0) {
+            plcClient.writeBit("M0503", 0); plcClient.writeBit("M0502", 1)
+        } else {
+            plcClient.writeBit("M0502", 0); plcClient.writeBit("M0503", 1)
+        }
+        appState.valve2Status = !appState.valve2Status
     }
 
     readonly property var valveStates: [
-        { "label": "Kapalı", "color": Rsp.Theme.slate500 },
-        { "label": "Aç",     "color": Rsp.Theme.emerald },
-        { "label": "Kapat",  "color": Rsp.Theme.rose }
+        { "label": "Closed", "color": Rsp.Theme.slate500 },
+        { "label": "Open",   "color": "#3b82f6"          }
     ]
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 16
+        Layout.fillHeight: true
+        spacing: 0
 
-        RowLayout {
+        Item { Layout.fillHeight: true; Layout.preferredHeight: 24 }
+
+        // ===== Main Chamber =====
+        ColumnLayout {
             Layout.fillWidth: true
             spacing: 12
             Text {
-                text: "Ana Valf"
+                Layout.alignment: Qt.AlignHCenter
+                text: "Main"
                 color: Rsp.Theme.text
                 font.family: Rsp.Theme.fontFamily
-                font.pixelSize: Rsp.Theme.fontSizeMd
-                Layout.preferredWidth: 100
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
             }
             Ui.ToggleSwitch {
                 Layout.fillWidth: true
                 states: root.valveStates
-                value: root.valve1Index
-                onValueUpdated: function(newIndex) {
-                    root.valve1Index = newIndex
-                    root.applyValve(newIndex, "M0500", "M0501")
-                }
+                value: (appState && appState.valve1Status) ? 1 : 0
+                onValueUpdated: function(newIndex) { root.toggleValve1() }
             }
         }
 
-        RowLayout {
+        // Divider
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            Layout.topMargin: 24
+            Layout.bottomMargin: 24
+            color: Rsp.Theme.border
+        }
+
+        // ===== Ante Chamber =====
+        ColumnLayout {
             Layout.fillWidth: true
             spacing: 12
             Text {
-                text: "Geçiş Valf"
+                Layout.alignment: Qt.AlignHCenter
+                text: "Ante"
                 color: Rsp.Theme.text
                 font.family: Rsp.Theme.fontFamily
-                font.pixelSize: Rsp.Theme.fontSizeMd
-                Layout.preferredWidth: 100
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
             }
             Ui.ToggleSwitch {
                 Layout.fillWidth: true
                 states: root.valveStates
-                value: root.valve2Index
-                onValueUpdated: function(newIndex) {
-                    root.valve2Index = newIndex
-                    root.applyValve(newIndex, "M0502", "M0503")
-                }
+                value: (appState && appState.valve2Status) ? 1 : 0
+                onValueUpdated: function(newIndex) { root.toggleValve2() }
             }
         }
+
+        Item { Layout.fillHeight: true; Layout.preferredHeight: 24 }
     }
 }

@@ -6,7 +6,7 @@ import ".." as Rsp
 Rectangle {
     id: root
 
-    implicitHeight: 80
+    implicitHeight: 96
     color: Rsp.Theme.bgPanel
     border.color: Rsp.Theme.border
     border.width: 1
@@ -19,10 +19,10 @@ Rectangle {
 
         Image {
             source: "../../assets/images/hipertech-logo.svg"
-            Layout.preferredHeight: 48
-            Layout.preferredWidth: 160
+            Layout.preferredHeight: 64
+            Layout.preferredWidth: 320
             fillMode: Image.PreserveAspectFit
-            sourceSize: Qt.size(160, 48)
+            sourceSize: Qt.size(640, 128)
         }
 
         Item { Layout.fillWidth: true }
@@ -68,7 +68,7 @@ Rectangle {
                 }
                 Text {
                     id: connText
-                    text: (appState && appState.connected) ? "Bağlı" : "Bağlantı Yok"
+                    text: (appState && appState.connected) ? "Connected" : "Disconnected"
                     color: "#ffffff"
                     font.family: Rsp.Theme.fontFamily
                     font.pixelSize: Rsp.Theme.fontSizeSm

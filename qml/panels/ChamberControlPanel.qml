@@ -6,22 +6,24 @@ import "../ui" as Ui
 
 Ui.Card {
     id: root
-    title: "Oda Kontrol"
-    implicitWidth: 400
+    title: "Chamber Control"
+    implicitWidth: 380
 
     signal chillerRequested()
 
-    readonly property var twoState: function(offLabel, onLabel) { return [
-        { "label": offLabel, "color": Rsp.Theme.slate500 },
-        { "label": onLabel,  "color": Rsp.Theme.emerald }
-    ]}
-    readonly property var ventilStates: [
-        { "label": "Off",      "color": Rsp.Theme.slate500 },
-        { "label": "Tahliye",  "color": Rsp.Theme.rose },
-        { "label": "Doldur",   "color": Rsp.Theme.emerald }
-    ]
+    function toggleAuto() {
+        const newValue = (appState && appState.autoMode) ? 0 : 1
+        plcClient.writeBit("M0201", newValue)
+        appState.autoMode = !appState.autoMode
+    }
 
-    function applyVentil(idx) {
+    function toggleAir() {
+        const newValue = (appState && appState.airMode) ? 0 : 1
+        plcClient.writeBit("M0200", newValue)
+        appState.airMode = !appState.airMode
+    }
+
+    function setVentil(idx) {
         if (idx === 0) {
             plcClient.writeBit("M0202", 0); plcClient.writeBit("M0203", 0)
         } else if (idx === 1) {
@@ -34,42 +36,60 @@ Ui.Card {
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 16
+        Layout.fillHeight: true
+        spacing: 24
 
+        // ----- Manual / Automatic -----
         Ui.ToggleSwitch {
             Layout.fillWidth: true
-            states: root.twoState("Manuel", "Otomatik")
-            value: (appState && appState.autoMode) ? 1 : 0
-            onValueUpdated: function(newIndex) {
-                plcClient.writeBit("M0201", newIndex)
-                appState.autoMode = (newIndex === 1)
-            }
+            states: [
+                { "label": "Manual",    "color": Rsp.Theme.rose    },
+                { "label": "Automatic", "color": Rsp.Theme.emerald }
+            ]
+            value: (appState && appState.autoMode) ? 0 : 1
+            onValueUpdated: function(newIndex) { root.toggleAuto() }
         }
 
+        // ----- Air / Oxygen (only enabled in auto mode) -----
         Ui.ToggleSwitch {
             Layout.fillWidth: true
-            states: root.twoState("Hava", "Oksijen")
+            enabledState: appState && appState.autoMode
+            states: [
+                { "label": "Air",    "color": "#3b82f6"        },
+                { "label": "Oxygen", "color": Rsp.Theme.emerald }
+            ]
             value: (appState && appState.airMode) ? 1 : 0
-            onValueUpdated: function(newIndex) {
-                plcClient.writeBit("M0200", newIndex)
-                appState.airMode = (newIndex === 1)
-            }
+            onValueUpdated: function(newIndex) { root.toggleAir() }
         }
 
+        // ----- Ventil (only enabled in MANUAL mode) -----
         Ui.ToggleSwitch {
             Layout.fillWidth: true
-            states: root.ventilStates
+            enabledState: !(appState && appState.autoMode)
+            states: [
+                { "label": "Off",  "color": Rsp.Theme.slate500 },
+                { "label": "Low",  "color": "#3b82f6"          },
+                { "label": "High", "color": "#3b82f6"          }
+            ]
             value: appState ? appState.ventilMode : 0
-            onValueUpdated: function(newIndex) { root.applyVentil(newIndex) }
+            onValueUpdated: function(newIndex) { root.setVentil(newIndex) }
         }
 
+        Item { Layout.fillHeight: true }
+
+        // ----- Chiller pill button -----
         Ui.AppButton {
             Layout.fillWidth: true
+            size: "lg"
             variant: appState && appState.chillerRunning ? "info" : "muted"
-            text: (appState && appState.chillerCommError) ? "Chiller: COMM HATA"
-                  : (appState && appState.chillerRunning)
-                      ? "Chiller: " + appState.chillerSetTemp.toFixed(1) + " °C"
-                      : "Chiller: KAPALI"
+            text: {
+                if (!appState) return "Chiller Off"
+                if (appState.chillerCommError) return "Chiller Off"
+                if (appState.chillerRunning) {
+                    return "Chiller " + appState.chillerCurrentTemp.toFixed(1) + "°C"
+                }
+                return "Chiller Off"
+            }
             enabledState: !(appState && appState.chillerCommError)
             onClicked: root.chillerRequested()
         }

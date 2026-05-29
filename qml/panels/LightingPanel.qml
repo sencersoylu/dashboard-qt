@@ -6,35 +6,26 @@ import "../ui" as Ui
 
 Ui.Card {
     id: root
-    title: "Aydınlatma"
-    implicitWidth: 400
+    title: "Lighting"
+    implicitWidth: 380
 
     readonly property var levelValues: [0, 85, 170, 255]
 
-    function levelToIndex(level) {
-        for (let i = 0; i < levelValues.length; ++i) {
-            if (levelValues[i] === level) return i
-        }
-        return 0
-    }
-
     function applyMain(idx) {
-        const value = levelValues[Math.max(0, Math.min(3, idx))]
-        plcClient.writeRegister("R01700", value)
-        appState.lightStatus = value
+        plcClient.writeRegister("R01700", levelValues[Math.max(0, Math.min(3, idx))])
+        appState.lightStatus = idx
     }
 
     function applyAnte(idx) {
-        const value = levelValues[Math.max(0, Math.min(3, idx))]
-        plcClient.writeRegister("R01702", value)
-        appState.light2Status = value
+        plcClient.writeRegister("R01702", levelValues[Math.max(0, Math.min(3, idx))])
+        appState.light2Status = idx
     }
 
     readonly property var lightStates: [
-        { "label": "Off",    "color": Rsp.Theme.slate500 },
-        { "label": "Düşük",  "color": Rsp.Theme.amber   },
-        { "label": "Orta",   "color": Rsp.Theme.sky     },
-        { "label": "Yüksek", "color": Rsp.Theme.emerald }
+        { "label": "Off",  "color": Rsp.Theme.slate500 },
+        { "label": "Low",  "color": "#3b82f6"          },
+        { "label": "Med",  "color": "#3b82f6"          },
+        { "label": "High", "color": "#3b82f6"          }
     ]
 
     ColumnLayout {
@@ -43,36 +34,38 @@ Ui.Card {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 12
+            spacing: 16
             Text {
-                text: "Ana Oda"
+                text: "Main"
                 color: Rsp.Theme.text
                 font.family: Rsp.Theme.fontFamily
                 font.pixelSize: Rsp.Theme.fontSizeMd
-                Layout.preferredWidth: 100
+                font.weight: Font.DemiBold
+                Layout.preferredWidth: 64
             }
             Ui.ToggleSwitch {
                 Layout.fillWidth: true
                 states: root.lightStates
-                value: root.levelToIndex(appState ? appState.lightStatus : 0)
+                value: appState ? appState.lightStatus : 0
                 onValueUpdated: function(newIndex) { root.applyMain(newIndex) }
             }
         }
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 12
+            spacing: 16
             Text {
-                text: "Geçiş"
+                text: "Ante"
                 color: Rsp.Theme.text
                 font.family: Rsp.Theme.fontFamily
                 font.pixelSize: Rsp.Theme.fontSizeMd
-                Layout.preferredWidth: 100
+                font.weight: Font.DemiBold
+                Layout.preferredWidth: 64
             }
             Ui.ToggleSwitch {
                 Layout.fillWidth: true
                 states: root.lightStates
-                value: root.levelToIndex(appState ? appState.light2Status : 0)
+                value: appState ? appState.light2Status : 0
                 onValueUpdated: function(newIndex) { root.applyAnte(newIndex) }
             }
         }

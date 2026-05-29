@@ -35,58 +35,32 @@ Rectangle {
             Layout.margins: 24
             spacing: 24
 
-            // ----- Left column -----
-            ColumnLayout {
-                Layout.preferredWidth: 320
+            // Column 1
+            Panels.ChamberControlPanel {
+                Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 16
-
-                Panels.ChamberControlPanel {
-                    Layout.fillWidth: true
-                    onChillerRequested: chillerModal.open()
-                }
-
-                Panels.AuxiliaryOutputPanel {
-                    Layout.fillWidth: true
-                }
+                onChillerRequested: chillerModal.open()
             }
 
-            // ----- Center column -----
+            // Column 2
+            Panels.AuxiliaryOutputPanel {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+            }
+
+            // Column 3 (Lighting top + Fan bottom)
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 16
-
-                Panels.HyperbaricChamber {
-                    Layout.fillWidth: true
-                }
-
-                Panels.ChamberSeatOverlay {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                }
-
-                Panels.CylinderBank {
-                    Layout.alignment: Qt.AlignHCenter
-                }
-            }
-
-            // ----- Right column -----
-            ColumnLayout {
-                Layout.preferredWidth: 320
-                Layout.fillHeight: true
-                spacing: 16
+                spacing: 24
 
                 Panels.LightingPanel {
                     Layout.fillWidth: true
+                    Layout.fillHeight: true
                 }
-
                 Panels.FanPanel {
                     Layout.fillWidth: true
-                }
-
-                Panels.ChillerStatusPanel {
-                    Layout.fillWidth: true
+                    Layout.fillHeight: true
                 }
             }
         }
