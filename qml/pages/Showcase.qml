@@ -193,6 +193,21 @@ Rectangle {
                 Ui.PressureTank { type: "nitrogen"; label: "N₂";       pressure: 120 }
                 Ui.PressureTank { type: "cylinder"; label: "O₂ Bank";  pressure: 245 }
             }
+
+            // ===== FSSIndicator =======================================
+            Text {
+                text: "FSSIndicator"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 32
+                Ui.FSSIndicator { label: "Main";  level: 75; pressure: 12.5; isActive: true }
+                Ui.FSSIndicator { label: "Ante";  level: 60; pressure: 11.2; isActive: false; hasWarning: true; warningPressure: 50 }
+            }
         }
     }
 
