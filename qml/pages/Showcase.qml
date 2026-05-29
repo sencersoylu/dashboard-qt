@@ -208,6 +208,22 @@ Rectangle {
                 Ui.FSSIndicator { label: "Main";  level: 75; pressure: 12.5; isActive: true }
                 Ui.FSSIndicator { label: "Ante";  level: 60; pressure: 11.2; isActive: false; hasWarning: true; warningPressure: 50 }
             }
+
+            // ===== CompressorUnit =====================================
+            Text {
+                text: "CompressorUnit"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 24
+                Ui.CompressorUnit { label: "HP 1"; status: true  }
+                Ui.CompressorUnit { label: "LP 1"; status: true  }
+                Ui.CompressorUnit { label: "LP 2"; status: false }
+            }
         }
     }
 
