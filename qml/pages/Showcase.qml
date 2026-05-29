@@ -94,6 +94,38 @@ Rectangle {
                     isLoading: true
                 }
             }
+
+            // ===== AppModal ===========================================
+            Text {
+                text: "AppModal"
+                color: Rsp.Theme.text
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeLg
+                font.weight: Font.Bold
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                Ui.AppButton { text: "Open small";  variant: "info"; onClicked: { demoModal.size = "sm";  demoModal.open() } }
+                Ui.AppButton { text: "Open medium"; variant: "info"; onClicked: { demoModal.size = "md";  demoModal.open() } }
+                Ui.AppButton { text: "Open large";  variant: "info"; onClicked: { demoModal.size = "lg";  demoModal.open() } }
+            }
+            Ui.AppModal {
+                id: demoModal
+                title: "Demo modal"
+                Text {
+                    text: "Esc, backdrop click, or × button closes."
+                    color: Rsp.Theme.text
+                    font.family: Rsp.Theme.fontFamily
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                }
+                Ui.AppButton {
+                    text: "Close"
+                    variant: "default"
+                    onClicked: demoModal.close()
+                }
+            }
         }
     }
 
