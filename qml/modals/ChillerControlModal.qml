@@ -6,8 +6,8 @@ import "../ui" as Ui
 
 Ui.AppModal {
     id: root
-    title: ""              // header is below the AppModal close strip
-    showCloseButton: true  // use AppModal's built-in close (top-right)
+    title: ""              // custom header below
+    showCloseButton: false // custom round white close in our own header
     size: "md"
 
     property real localSetTemp: appState ? appState.chillerSetTemp : 20.0
@@ -31,10 +31,103 @@ Ui.AppModal {
     readonly property bool commError: appState && appState.chillerCommError
     readonly property bool running:   appState && appState.chillerRunning && !commError
 
-    // ============ Big Temperature Card (with header) ============
+    // ============ Custom Header: snowflake + title + status pill + close X
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: 12
+
+        Image {
+            Layout.preferredWidth: 24
+            Layout.preferredHeight: 24
+            source: "../../assets/icons/snowflake-white.svg"
+            sourceSize: Qt.size(24, 24)
+        }
+        Text {
+            text: "Chiller Status"
+            color: Rsp.Theme.text
+            font.family: Rsp.Theme.fontFamily
+            font.pixelSize: 18
+            font.weight: Font.DemiBold
+        }
+
+        Item { Layout.fillWidth: true }
+
+        // Status pill (Running / Stopped)
+        Rectangle {
+            implicitHeight: 32
+            implicitWidth: statusContent.implicitWidth + 24
+            radius: 16
+            color: root.running
+                   ? Rsp.Theme.emerald
+                   : (appState && appState.darkMode ? Rsp.Theme.slate700 : "#cbd5e1")
+
+            RowLayout {
+                id: statusContent
+                anchors.centerIn: parent
+                spacing: 8
+
+                Rectangle {
+                    visible: root.running
+                    implicitWidth: 8; implicitHeight: 8
+                    radius: 4
+                    color: "#ffffff"
+                    SequentialAnimation on opacity {
+                        running: root.running
+                        loops: Animation.Infinite
+                        NumberAnimation { from: 1.0; to: 0.4; duration: 700; easing.type: Easing.InOutQuad }
+                        NumberAnimation { from: 0.4; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
+                    }
+                }
+                Text {
+                    text: root.running ? "Running" : "Stopped"
+                    color: root.running
+                           ? "#ffffff"
+                           : (appState && appState.darkMode ? Rsp.Theme.slate300 : Rsp.Theme.slate500)
+                    font.family: Rsp.Theme.fontFamily
+                    font.pixelSize: 13
+                    font.weight: Font.DemiBold
+                }
+            }
+        }
+
+        // Round white close button (matches AppModal's style)
+        Item {
+            implicitWidth: 36; implicitHeight: 36
+            Rectangle {
+                anchors.fill: parent
+                radius: width / 2
+                color: closeArea.containsMouse
+                       ? Qt.rgba(1, 1, 1, 0.15)
+                       : Qt.rgba(1, 1, 1, 0.08)
+                border.color: Qt.rgba(1, 1, 1, 0.25)
+                border.width: 1
+                Behavior on color { ColorAnimation { duration: Rsp.Theme.animFast } }
+            }
+            Text {
+                anchors.centerIn: parent
+                text: "×"
+                color: "#ffffff"
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: 22
+                font.weight: Font.Medium
+            }
+            MouseArea {
+                id: closeArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (appState) appState.showChillerModal = false
+                    root.close()
+                }
+            }
+        }
+    }
+
+    // ============ Big Temperature Card ============
     Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: 220
+        Layout.preferredHeight: 180
         Layout.topMargin: 4
         radius: 20
         gradient: Gradient {
@@ -58,72 +151,9 @@ Ui.AppModal {
         border.width: 1
 
         ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 20
-            spacing: 0
+            anchors.centerIn: parent
+            spacing: 6
 
-            // ----- Card Header: snowflake (white) + "Chiller Status" + status pill
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-
-                Image {
-                    Layout.preferredWidth: 24
-                    Layout.preferredHeight: 24
-                    source: "../../assets/icons/snowflake-white.svg"
-                    sourceSize: Qt.size(24, 24)
-                }
-                Text {
-                    text: "Chiller Status"
-                    color: Rsp.Theme.text
-                    font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: 18
-                    font.weight: Font.DemiBold
-                }
-                Item { Layout.fillWidth: true }
-
-                // Status pill
-                Rectangle {
-                    implicitHeight: 32
-                    implicitWidth: statusContent.implicitWidth + 24
-                    radius: 16
-                    color: root.running
-                           ? Rsp.Theme.emerald
-                           : (appState && appState.darkMode ? Rsp.Theme.slate700 : "#cbd5e1")
-
-                    RowLayout {
-                        id: statusContent
-                        anchors.centerIn: parent
-                        spacing: 8
-
-                        Rectangle {
-                            visible: root.running
-                            implicitWidth: 8; implicitHeight: 8
-                            radius: 4
-                            color: "#ffffff"
-                            SequentialAnimation on opacity {
-                                running: root.running
-                                loops: Animation.Infinite
-                                NumberAnimation { from: 1.0; to: 0.4; duration: 700; easing.type: Easing.InOutQuad }
-                                NumberAnimation { from: 0.4; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
-                            }
-                        }
-                        Text {
-                            text: root.running ? "Running" : "Stopped"
-                            color: root.running
-                                   ? "#ffffff"
-                                   : (appState && appState.darkMode ? Rsp.Theme.slate300 : Rsp.Theme.slate500)
-                            font.family: Rsp.Theme.fontFamily
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
-                        }
-                    }
-                }
-            }
-
-            Item { Layout.fillHeight: true }
-
-            // ----- Card Body: "Current Water Temperature" + huge number
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: "Current Water Temperature"
@@ -135,7 +165,6 @@ Ui.AppModal {
 
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: 4
                 spacing: 4
 
                 Text {
@@ -144,19 +173,17 @@ Ui.AppModal {
                           : (appState ? appState.chillerCurrentTemp.toFixed(1) : "––")
                     color: appState && appState.darkMode ? Rsp.Theme.text : Rsp.Theme.slate700
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: 64
+                    font.pixelSize: 72
                     font.weight: Font.Bold
                 }
                 Text {
                     text: "°C"
                     color: appState && appState.darkMode ? Rsp.Theme.slate300 : Rsp.Theme.slate700
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: 32
+                    font.pixelSize: 36
                     Layout.bottomMargin: 8
                 }
             }
-
-            Item { Layout.fillHeight: true }
         }
     }
 
@@ -185,7 +212,6 @@ Ui.AppModal {
     }
 
     // ============ Action Buttons ============
-    // Single Start/Stop button with power icon, then Close
     Item {
         Layout.fillWidth: true
         Layout.preferredHeight: 64
@@ -207,7 +233,7 @@ Ui.AppModal {
                 Image {
                     Layout.preferredWidth: 22
                     Layout.preferredHeight: 22
-                    source: "../../assets/icons/power.svg"
+                    source: "../../assets/icons/power-white.svg"
                     sourceSize: Qt.size(22, 22)
                 }
                 Text {
@@ -240,7 +266,7 @@ Ui.AppModal {
             anchors.fill: parent
             radius: Rsp.Theme.radiusMd
             color: appState && appState.darkMode ? Rsp.Theme.slate700 : "#94a3b8"
-            scale: closeArea.pressed ? 0.98 : (closeArea.containsMouse ? 1.02 : 1.0)
+            scale: closeBottomArea.pressed ? 0.98 : (closeBottomArea.containsMouse ? 1.02 : 1.0)
             Behavior on scale { NumberAnimation { duration: Rsp.Theme.animFast } }
 
             Text {
@@ -253,7 +279,7 @@ Ui.AppModal {
             }
 
             MouseArea {
-                id: closeArea
+                id: closeBottomArea
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
