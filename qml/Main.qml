@@ -63,10 +63,13 @@ QtObject {
                 win.x = target.virtualX
                 win.y = target.virtualY
                 win.screen = target
+                // labwc decides which monitor a fullscreen surface lands
+                // on at *map time*. Show windowed first so the surface is
+                // registered at the target coordinates, then upgrade to
+                // fullscreen one event-loop tick later.
+                win.show()
                 if (!cfg || cfg.fullscreen !== false) {
-                    win.showFullScreen()
-                } else {
-                    win.show()
+                    Qt.callLater(function() { win.showFullScreen() })
                 }
             }
 
@@ -126,6 +129,7 @@ QtObject {
             }
             Shortcut {
                 sequence: "Ctrl+W"
+                context: Qt.ApplicationShortcut
                 onActivated: Qt.quit()
             }
 
