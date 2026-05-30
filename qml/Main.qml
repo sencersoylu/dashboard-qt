@@ -38,40 +38,28 @@ QtObject {
             // the default monitor and labwc never re-homes the surface.
             visibility: Window.Hidden
 
-            Component.onCompleted: {
+            // Look up the requested screen — by name (string, stable) or
+            // index (number, fallback). Returns null if name-based and the
+            // monitor isn't connected yet.
+            function _findScreen(wanted) {
                 var screens = Qt.application.screens
-                var wanted = (cfg && cfg.display !== undefined) ? cfg.display : 0
-                var target = null
-                // Name-based lookup is stable across reboots (HDMI port
-                // enumeration order can change). Index is the fallback.
                 if (typeof wanted === "string") {
                     for (var s = 0; s < screens.length; s++) {
-                        if (screens[s].name === wanted) { target = screens[s]; break }
+                        if (screens[s].name === wanted) return screens[s]
                     }
-                    if (!target) {
-                        console.warn("Window '" + (cfg ? cfg.id : "?") + "' wants screen '"
-                                     + wanted + "' — not found. Available: "
-                                     + screens.map(function(x){ return x.name }).join(", ")
-                                     + ". Falling back to screen 0.")
-                        target = screens[0]
-                    }
-                } else {
-                    var idx = wanted
-                    if (idx >= screens.length) {
-                        console.warn("Window '" + (cfg ? cfg.id : "?") + "' wants display "
-                                     + idx + " but only " + screens.length
-                                     + " available — falling back to 0")
-                        idx = 0
-                    }
-                    target = screens[idx]
+                    return null
                 }
-                console.log("Window '" + (cfg ? cfg.id : "?") + "' → "
-                            + target.name + " at " + target.virtualX + "," + target.virtualY
+                var idx = wanted
+                if (idx >= screens.length) return screens[0]
+                return screens[idx]
+            }
+
+            function _placeOnScreen(target) {
+                var name = cfg ? cfg.id : "?"
+                var screens = Qt.application.screens
+                console.log("Window '" + name + "' → " + target.name
+                            + " at " + target.virtualX + "," + target.virtualY
                             + " (all: " + screens.map(function(x){ return x.name }).join(", ") + ")")
-                // Move the window into the target screen's bounds *before*
-                // showing it. labwc fullscreens whatever monitor contains
-                // the window's top-left corner, so the position is what
-                // actually matters here — size is handled by showFullScreen.
                 win.x = target.virtualX
                 win.y = target.virtualY
                 win.screen = target
@@ -79,6 +67,49 @@ QtObject {
                     win.showFullScreen()
                 } else {
                     win.show()
+                }
+            }
+
+            // Boot order: HDMI ports register asynchronously. If the named
+            // monitor isn't visible yet, poll for up to ~15 s before giving
+            // up and falling back to whatever is available.
+            Timer {
+                id: screenWaiter
+                interval: 500
+                repeat: true
+                property int attempts: 0
+                readonly property int maxAttempts: 30  // 30 × 500 ms = 15 s
+                onTriggered: {
+                    attempts++
+                    var wanted = (cfg && cfg.display !== undefined) ? cfg.display : 0
+                    var target = win._findScreen(wanted)
+                    if (target) {
+                        stop()
+                        win._placeOnScreen(target)
+                        return
+                    }
+                    if (attempts >= maxAttempts) {
+                        stop()
+                        var fallback = Qt.application.screens[0]
+                        console.warn("Window '" + (cfg ? cfg.id : "?") + "' timed out waiting for '"
+                                     + wanted + "' — using " + fallback.name)
+                        win._placeOnScreen(fallback)
+                    }
+                }
+            }
+
+            Component.onCompleted: {
+                // Try immediate placement first — covers the common case
+                // where every monitor is already up.
+                var wanted = (cfg && cfg.display !== undefined) ? cfg.display : 0
+                var target = win._findScreen(wanted)
+                if (target) {
+                    win._placeOnScreen(target)
+                } else {
+                    console.log("Window '" + (cfg ? cfg.id : "?") + "' waiting for screen '"
+                                + wanted + "' (currently: "
+                                + Qt.application.screens.map(function(x){ return x.name }).join(", ") + ")")
+                    screenWaiter.start()
                 }
                 stack.replace("pages/Splash.qml", { nextPage: win.pageUrl })
             }
