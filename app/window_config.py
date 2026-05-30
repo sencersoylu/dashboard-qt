@@ -127,20 +127,31 @@ def sync_labwc_rules(cfg: dict[str, Any]) -> None:
     if not block:
         return
 
+    # labwc accepts either <labwc_config> or the openbox-compat
+    # <openbox_config> as the root element. We must insert our block
+    # *inside* whichever wrapper is in use, otherwise the rules end up
+    # outside the XML root and labwc silently ignores them.
+    _ROOT_CLOSE_TAGS = ("</labwc_config>", "</openbox_config>")
+
     if _RC_PATH.exists():
         text = _RC_PATH.read_text()
-        if _BEGIN in text and _END in text:
-            new_text = re.sub(
-                re.escape(_BEGIN) + r".*?" + re.escape(_END),
-                block,
-                text,
-                flags=re.DOTALL,
-            )
-        elif "</labwc_config>" in text:
-            new_text = text.replace("</labwc_config>", block + "\n</labwc_config>")
+        # 1. Strip any prior rsp-qt block wherever it sits (an earlier
+        #    version of this code appended outside the root tag on
+        #    openbox_config files — repair on rewrite).
+        cleaned = re.sub(
+            r"\s*" + re.escape(_BEGIN) + r".*?" + re.escape(_END) + r"\s*",
+            "\n",
+            text,
+            flags=re.DOTALL,
+        ).rstrip() + "\n"
+        # 2. Insert the fresh block before the root closing tag.
+        new_text = cleaned
+        for close in _ROOT_CLOSE_TAGS:
+            if close in cleaned:
+                new_text = cleaned.replace(close, block + "\n" + close)
+                break
         else:
-            # Malformed or wrapper-less — just append.
-            new_text = text.rstrip() + "\n" + block + "\n"
+            new_text = cleaned + block + "\n"
     else:
         _RC_PATH.parent.mkdir(parents=True, exist_ok=True)
         new_text = (
