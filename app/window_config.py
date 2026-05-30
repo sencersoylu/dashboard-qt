@@ -157,7 +157,11 @@ def sync_labwc_rules(cfg: dict[str, Any]) -> None:
 
     _RC_PATH.write_text(new_text)
     log.info("Updated labwc rc.xml windowRules at %s", _RC_PATH)
+    # `labwc --reconfigure` needs LABWC_PID env var (set automatically when
+    # labwc spawns the process). Outside a labwc-launched session (e.g. SSH)
+    # it falls back to a useless no-op. Sending SIGHUP to the running labwc
+    # process triggers the same reload and works in any context.
     try:
-        subprocess.run(["labwc", "--reconfigure"], check=False, timeout=3)
+        subprocess.run(["pkill", "-HUP", "-x", "labwc"], check=False, timeout=2)
     except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-        log.warning("labwc --reconfigure failed: %s (rules will apply at next session)", exc)
+        log.warning("Could not signal labwc to reload (%s); new rules apply next session", exc)
