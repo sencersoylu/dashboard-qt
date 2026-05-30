@@ -133,20 +133,21 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             visible: root.showLabels
+            spacing: 0
+
             Text {
                 text: root.leftLabel !== "" ? root.leftLabel : Math.round(root.min)
                 color: Rsp.Theme.textMuted
                 font.family: Rsp.Theme.fontFamily
                 font.pixelSize: Rsp.Theme.fontSizeSm
-                Layout.fillWidth: true
             }
+            Item { Layout.fillWidth: true }
             Text {
                 visible: root.centerLabel !== ""
                 text: root.centerLabel
                 color: Rsp.Theme.textMuted
                 font.family: Rsp.Theme.fontFamily
                 font.pixelSize: Rsp.Theme.fontSizeSm
-                Layout.alignment: Qt.AlignHCenter
             }
             Item { Layout.fillWidth: true; visible: root.centerLabel !== "" }
             Text {

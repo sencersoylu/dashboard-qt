@@ -31,75 +31,10 @@ Ui.AppModal {
     readonly property bool commError: appState && appState.chillerCommError
     readonly property bool running:   appState && appState.chillerRunning && !commError
 
-    // ============ Status Row ============
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.topMargin: 8
-        spacing: 12
-
-        // Snowflake + label (left)
-        RowLayout {
-            spacing: 12
-            Image {
-                Layout.preferredWidth: 24
-                Layout.preferredHeight: 24
-                source: "../../assets/icons/snowflake.svg"
-                sourceSize: Qt.size(24, 24)
-            }
-            Text {
-                text: "Chiller Status"
-                color: Rsp.Theme.text
-                font.family: Rsp.Theme.fontFamily
-                font.pixelSize: 18
-                font.weight: Font.DemiBold
-            }
-        }
-
-        Item { Layout.fillWidth: true }
-
-        // Status pill (right)
-        Rectangle {
-            implicitHeight: 36
-            implicitWidth: statusContent.implicitWidth + 28
-            radius: 18
-            color: root.running
-                   ? Rsp.Theme.emerald
-                   : (appState && appState.darkMode ? Rsp.Theme.slate700 : "#cbd5e1")
-
-            RowLayout {
-                id: statusContent
-                anchors.centerIn: parent
-                spacing: 8
-
-                Rectangle {
-                    visible: root.running
-                    implicitWidth: 8; implicitHeight: 8
-                    radius: 4
-                    color: "#ffffff"
-                    SequentialAnimation on opacity {
-                        running: root.running
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 1.0; to: 0.4; duration: 700; easing.type: Easing.InOutQuad }
-                        NumberAnimation { from: 0.4; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
-                    }
-                }
-                Text {
-                    text: root.running ? "Running" : "Stopped"
-                    color: root.running
-                           ? "#ffffff"
-                           : (appState && appState.darkMode ? Rsp.Theme.slate300 : Rsp.Theme.slate500)
-                    font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: 14
-                    font.weight: Font.DemiBold
-                }
-            }
-        }
-    }
-
-    // ============ Big Temperature Card ============
+    // ============ Big Temperature Card (with header) ============
     Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: 180
+        Layout.preferredHeight: 220
         Layout.topMargin: 4
         radius: 20
         gradient: Gradient {
@@ -108,54 +43,120 @@ Ui.AppModal {
                 position: 0.0
                 color: appState && appState.darkMode
                        ? Qt.rgba(Rsp.Theme.cyan.r, Rsp.Theme.cyan.g, Rsp.Theme.cyan.b, 0.10)
-                       : "#ecfeff"  // cyan-50
+                       : "#ecfeff"
             }
             GradientStop {
                 position: 1.0
                 color: appState && appState.darkMode
-                       ? Qt.rgba(0.23, 0.51, 0.96, 0.06)  // blue-950/30 ish
-                       : "#eff6ff"  // blue-50
+                       ? Qt.rgba(0.23, 0.51, 0.96, 0.06)
+                       : "#eff6ff"
             }
         }
         border.color: appState && appState.darkMode
                       ? Qt.rgba(Rsp.Theme.cyan.r, Rsp.Theme.cyan.g, Rsp.Theme.cyan.b, 0.18)
-                      : "#cffafe"  // cyan-100
+                      : "#cffafe"
         border.width: 1
 
         ColumnLayout {
-            anchors.centerIn: parent
-            spacing: 8
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 0
 
+            // ----- Card Header: snowflake (white) + "Chiller Status" + status pill
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+
+                Image {
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+                    source: "../../assets/icons/snowflake-white.svg"
+                    sourceSize: Qt.size(24, 24)
+                }
+                Text {
+                    text: "Chiller Status"
+                    color: Rsp.Theme.text
+                    font.family: Rsp.Theme.fontFamily
+                    font.pixelSize: 18
+                    font.weight: Font.DemiBold
+                }
+                Item { Layout.fillWidth: true }
+
+                // Status pill
+                Rectangle {
+                    implicitHeight: 32
+                    implicitWidth: statusContent.implicitWidth + 24
+                    radius: 16
+                    color: root.running
+                           ? Rsp.Theme.emerald
+                           : (appState && appState.darkMode ? Rsp.Theme.slate700 : "#cbd5e1")
+
+                    RowLayout {
+                        id: statusContent
+                        anchors.centerIn: parent
+                        spacing: 8
+
+                        Rectangle {
+                            visible: root.running
+                            implicitWidth: 8; implicitHeight: 8
+                            radius: 4
+                            color: "#ffffff"
+                            SequentialAnimation on opacity {
+                                running: root.running
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 1.0; to: 0.4; duration: 700; easing.type: Easing.InOutQuad }
+                                NumberAnimation { from: 0.4; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
+                            }
+                        }
+                        Text {
+                            text: root.running ? "Running" : "Stopped"
+                            color: root.running
+                                   ? "#ffffff"
+                                   : (appState && appState.darkMode ? Rsp.Theme.slate300 : Rsp.Theme.slate500)
+                            font.family: Rsp.Theme.fontFamily
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                        }
+                    }
+                }
+            }
+
+            Item { Layout.fillHeight: true }
+
+            // ----- Card Body: "Current Water Temperature" + huge number
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: "Current Water Temperature"
                 color: appState && appState.darkMode ? Rsp.Theme.slate300 : Rsp.Theme.slate500
                 font.family: Rsp.Theme.fontFamily
-                font.pixelSize: 16
+                font.pixelSize: 15
                 font.weight: Font.Medium
             }
 
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: 4
                 spacing: 4
 
                 Text {
                     text: root.commError
                           ? "––"
                           : (appState ? appState.chillerCurrentTemp.toFixed(1) : "––")
-                    color: appState && appState.darkMode ? Rsp.Theme.slate300 : Rsp.Theme.slate700
+                    color: appState && appState.darkMode ? Rsp.Theme.text : Rsp.Theme.slate700
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: 76
+                    font.pixelSize: 64
                     font.weight: Font.Bold
                 }
                 Text {
                     text: "°C"
                     color: appState && appState.darkMode ? Rsp.Theme.slate300 : Rsp.Theme.slate700
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: 40
+                    font.pixelSize: 32
                     Layout.bottomMargin: 8
                 }
             }
+
+            Item { Layout.fillHeight: true }
         }
     }
 
