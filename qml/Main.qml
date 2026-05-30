@@ -124,6 +124,10 @@ QtObject {
                 sequence: "Ctrl+D"
                 onActivated: appState.darkMode = !appState.darkMode
             }
+            Shortcut {
+                sequence: "Ctrl+W"
+                onActivated: Qt.quit()
+            }
 
             StackView {
                 id: stack
