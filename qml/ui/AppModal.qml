@@ -59,22 +59,27 @@ Popup {
 
             Item {
                 visible: root.showCloseButton
-                implicitWidth: 28; implicitHeight: 28
+                implicitWidth: 36; implicitHeight: 36
 
                 Rectangle {
                     id: closeBg
                     anchors.fill: parent
-                    radius: 14
-                    color: closeArea.containsMouse ? Rsp.Theme.border : "transparent"
+                    radius: width / 2
+                    color: closeArea.containsMouse
+                           ? Qt.rgba(1, 1, 1, 0.15)
+                           : Qt.rgba(1, 1, 1, 0.08)
+                    border.color: Qt.rgba(1, 1, 1, 0.25)
+                    border.width: 1
                     Behavior on color { ColorAnimation { duration: Rsp.Theme.animFast } }
                 }
 
                 Text {
                     anchors.centerIn: parent
                     text: "×"
-                    color: Rsp.Theme.textMuted
+                    color: "#ffffff"
                     font.family: Rsp.Theme.fontFamily
-                    font.pixelSize: 20
+                    font.pixelSize: 22
+                    font.weight: Font.Medium
                 }
 
                 MouseArea {

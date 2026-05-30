@@ -165,6 +165,7 @@ Ui.AppModal {
         Layout.topMargin: 8
         label: "Target Water Temperature"
         color: "cyan"
+        unit: "°C"
         min: 5; max: 35; step: 0.5
         value: root.localSetTemp
         enabledState: !root.commError

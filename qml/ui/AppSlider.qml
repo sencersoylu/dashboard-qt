@@ -17,6 +17,7 @@ Item {
     property string leftLabel: ""
     property string centerLabel: ""
     property string rightLabel: ""
+    property string unit: ""
     property bool enabledState: true
 
     signal valueUpdated(real v)
@@ -61,7 +62,7 @@ Item {
                 Layout.fillWidth: true
             }
             Text {
-                text: Math.round(root.value)
+                text: Math.round(root.value) + (root.unit !== "" ? " " + root.unit : "")
                 color: root.activeColor
                 font.family: Rsp.Theme.fontFamily
                 font.pixelSize: Rsp.Theme.fontSizeXl
