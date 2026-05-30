@@ -58,6 +58,11 @@ def main() -> int:
         [w.get("id") for w in cfg["windows"]],
         sorted(needed) or "(none)",
     )
+    # Mirror the per-window display assignment into ~/.config/labwc/rc.xml
+    # so the compositor pins each window to its requested output. labwc's
+    # fullscreen heuristic ignores Qt's own position request when multiple
+    # apps compete for the same monitor — the rc.xml rule wins.
+    window_config.sync_labwc_rules(cfg)
 
     state = AppState()
     plc = PlcClient(state) if "plc" in needed else None
