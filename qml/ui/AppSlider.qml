@@ -15,6 +15,7 @@ Item {
     property string size: "md"
     property bool showLabels: true
     property string leftLabel: ""
+    property string centerLabel: ""
     property string rightLabel: ""
     property bool enabledState: true
 
@@ -138,6 +139,15 @@ Item {
                 font.pixelSize: Rsp.Theme.fontSizeSm
                 Layout.fillWidth: true
             }
+            Text {
+                visible: root.centerLabel !== ""
+                text: root.centerLabel
+                color: Rsp.Theme.textMuted
+                font.family: Rsp.Theme.fontFamily
+                font.pixelSize: Rsp.Theme.fontSizeSm
+                Layout.alignment: Qt.AlignHCenter
+            }
+            Item { Layout.fillWidth: true; visible: root.centerLabel !== "" }
             Text {
                 text: root.rightLabel !== "" ? root.rightLabel : Math.round(root.max)
                 color: Rsp.Theme.textMuted
