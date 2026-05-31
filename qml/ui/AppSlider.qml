@@ -83,6 +83,23 @@ Item {
                 color: appState && appState.darkMode ? Rsp.Theme.slate700 : "#e2e8f0"
             }
 
+            // Click-anywhere-on-row to jump. Placed before the thumb's
+            // MouseArea in the stacking order so the thumb still wins on
+            // its own footprint (drag-to-fine-tune keeps working).
+            MouseArea {
+                anchors.fill: parent
+                enabled: root.enabledState
+                onPressed: function(mouse) {
+                    const r = Math.max(0, Math.min(1, mouse.x / track.width))
+                    const raw = root.min + r * (root.max - root.min)
+                    const stepped = Math.round(raw / root.step) * root.step
+                    if (stepped !== root.value) {
+                        root.value = stepped
+                        root.valueUpdated(stepped)
+                    }
+                }
+            }
+
             Rectangle {
                 anchors.left: track.left
                 anchors.verticalCenter: track.verticalCenter
