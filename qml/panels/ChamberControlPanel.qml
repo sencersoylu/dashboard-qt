@@ -12,9 +12,15 @@ Ui.Card {
     signal chillerRequested()
 
     function toggleAuto() {
-        const newValue = (appState && appState.autoMode) ? 0 : 1
-        plcClient.writeBit("M0201", newValue)
-        appState.autoMode = !appState.autoMode
+        const goingAuto = !(appState && appState.autoMode)
+        plcClient.writeBit("M0201", goingAuto ? 1 : 0)
+        appState.autoMode = goingAuto
+        // When the operator switches to Automatic, force the gas mode to
+        // Oxygen (airMode = 1). Manual switch leaves gas selection alone.
+        if (goingAuto && !appState.airMode) {
+            plcClient.writeBit("M0200", 1)
+            appState.airMode = true
+        }
     }
 
     function toggleAir() {
