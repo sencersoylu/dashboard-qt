@@ -12,12 +12,16 @@ Ui.Card {
     signal chillerRequested()
 
     function toggleAuto() {
-        const goingAuto = !(appState && appState.autoMode)
-        plcClient.writeBit("M0201", goingAuto ? 1 : 0)
-        appState.autoMode = goingAuto
-        // Going Automatic always forces gas mode to Air, no matter what
-        // the operator had selected in Manual.
-        if (goingAuto) {
+        // Inverted-naming gotcha (mirrors React): `autoMode = true` actually
+        // means the **Manual** pill is highlighted. autoMode=false means
+        // Automatic is highlighted. We flip the value here, then check the
+        // resulting *visible* mode to decide whether to force gas to Air.
+        const newAutoMode = !(appState && appState.autoMode)
+        plcClient.writeBit("M0201", newAutoMode ? 1 : 0)
+        appState.autoMode = newAutoMode
+        // Operator-visible: switching to Automatic ⇒ newAutoMode === false.
+        // In that case, always force gas mode to Air.
+        if (!newAutoMode) {
             plcClient.writeBit("M0200", 0)
             appState.airMode = false
         }
@@ -61,9 +65,12 @@ Ui.Card {
         Item { Layout.fillHeight: true; Layout.minimumHeight: 16 }
 
         // ----- Air / Oxygen (only enabled in MANUAL mode) -----
+        // Inverted naming gotcha: `autoMode = true` actually means the
+        // "Manual" pill is on screen (mirrors React's value={autoMode ? 0 : 1}).
+        // So enabledState reads `autoMode` directly to be on while Manual.
         Ui.ToggleSwitch {
             Layout.fillWidth: true
-            enabledState: !(appState && appState.autoMode)
+            enabledState: appState && appState.autoMode
             states: [
                 { "label": "Air",    "color": "#3b82f6"        },
                 { "label": "Oxygen", "color": Rsp.Theme.emerald }
