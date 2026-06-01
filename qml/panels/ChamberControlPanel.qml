@@ -16,10 +16,11 @@ Ui.Card {
         plcClient.writeBit("M0201", goingAuto ? 1 : 0)
         appState.autoMode = goingAuto
         // When the operator switches to Automatic, force the gas mode to
-        // Oxygen (airMode = 1). Manual switch leaves gas selection alone.
-        if (goingAuto && !appState.airMode) {
-            plcClient.writeBit("M0200", 1)
-            appState.airMode = true
+        // Air (airMode = false / index 0). Manual switch leaves the gas
+        // selection where the operator left it.
+        if (goingAuto && appState.airMode) {
+            plcClient.writeBit("M0200", 0)
+            appState.airMode = false
         }
     }
 
