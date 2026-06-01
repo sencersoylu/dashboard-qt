@@ -39,6 +39,7 @@ class AppState(QObject):
     showAuxPanelChanged = Signal()
     showCalibrationModalChanged = Signal()
     showErrorModalChanged = Signal()
+    errorModalSuppressedChanged = Signal()
     showSeatAlarmModalChanged = Signal()
     showChillerModalChanged = Signal()
     calibrationProgressChanged = Signal()
@@ -113,6 +114,7 @@ class AppState(QObject):
             "showAuxPanel": False,
             "showCalibrationModal": False,
             "showErrorModal": False,
+            "errorModalSuppressed": False,
             "showSeatAlarmModal": False,
             "showChillerModal": False,
             "calibrationProgress": 0,
@@ -207,6 +209,7 @@ class AppState(QObject):
     _SCALAR_TYPES = {
         "darkMode": bool, "connected": bool, "currentTime": str, "currentTime2": str,
         "showAuxPanel": bool, "showCalibrationModal": bool, "showErrorModal": bool,
+        "errorModalSuppressed": bool,
         "showSeatAlarmModal": bool, "showChillerModal": bool,
         "calibrationProgress": int, "calibrationStatus": str, "errorMessage": str,
         "lightStatus": int, "light2Status": int, "fan1Status": int, "fan2Status": int,

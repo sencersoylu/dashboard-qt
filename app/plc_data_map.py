@@ -136,6 +136,9 @@ def _apply_alarm_bits(state, bits: int, payload: Sequence[float]) -> None:
         state.errorMessage = ""
         state.activeSeatAlarm = {}
         state.showSeatAlarmModal = False
+        # Master is back to 0: lift the post-dismiss suppression so the
+        # next *new* alarm can open the modal again.
+        state.errorModalSuppressed = False
         return
 
     # Master gate is on. Seat alarms (bit 1) open the seat modal; data[16]
@@ -147,10 +150,12 @@ def _apply_alarm_bits(state, bits: int, payload: Sequence[float]) -> None:
         state.showSeatAlarmModal = True
 
     # First matching error bit wins the modal slot — mirrors React's elif
-    # chain. We don't re-open the modal if the user already dismissed it.
-    # The flag attrs (mainFlameDetected, etc.) are already set by the raw
-    # bit-mirror loop above, so this only manages modal + message.
-    if not state.showErrorModal:
+    # chain. We don't re-open the modal if the user already dismissed it
+    # (errorModalSuppressed stays true until the master gate drops back to
+    # 0, see the early return above). The flag attrs (mainFlameDetected,
+    # etc.) are already set by the raw bit-mirror loop above, so this only
+    # manages modal + message.
+    if not state.showErrorModal and not state.errorModalSuppressed:
         for bit, _flag_attr, message in _ERROR_BIT_MESSAGES:
             if bits & (1 << bit):
                 state.errorMessage = message

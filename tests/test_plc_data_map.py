@@ -156,6 +156,30 @@ def test_alarm_first_bit_wins_modal_slot(qapp):
     assert "Smoke" in s.errorMessage
 
 
+def test_alarm_suppression_holds_modal_closed(qapp):
+    """After the user dismisses, errorModalSuppressed stays set until
+    the master gate (bit 0) drops, even if error bits are still high."""
+    s = AppState()
+    # Simulate: alarm active, user dismissed (suppressed=True, modal closed)
+    s.errorModalSuppressed = True
+    s.showErrorModal = False
+    payload = [0.0] * 31
+    payload[19] = (1 << 0) | (1 << 4)  # master still high + main flame
+    apply_data_array(s, payload)
+    # Modal must stay closed because of suppression
+    assert s.showErrorModal is False
+    assert s.errorModalSuppressed is True
+    # Now master drops to 0
+    payload[19] = 0
+    apply_data_array(s, payload)
+    # Suppression lifted, modal still closed (no bit set)
+    assert s.errorModalSuppressed is False
+    # Next master-on alarm reopens
+    payload[19] = (1 << 0) | (1 << 4)
+    apply_data_array(s, payload)
+    assert s.showErrorModal is True
+
+
 def test_data8_is_not_written_anymore(qapp):
     s = AppState()
     s.airTankPressure = 99.0
