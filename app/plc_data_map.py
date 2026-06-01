@@ -56,6 +56,9 @@ _CHILLER_PV_INDEX = 15
 _CHILLER_PV_DIVISOR = 10.0
 
 _ALARM_BITS_INDEX = 19
+_SEAT_INDEX = 16
+_BIT_MASTER = 0
+_BIT_SEAT = 1
 _ALARM_BITS: dict[int, str] = {
     2: "mainFssAlarm",
     3: "anteFssAlarm",
@@ -64,6 +67,28 @@ _ALARM_BITS: dict[int, str] = {
     6: "anteSmokeDetected",
     7: "mainHighO2",
     8: "anteHighO2",
+}
+
+# Bit → (transient-flag-attr-or-None, modal-message). Order matches React's
+# `if / elif` chain in dashboard.tsx so the first-active bit wins the modal
+# message slot.
+_ERROR_BIT_MESSAGES: tuple[tuple[int, str | None, str], ...] = (
+    (2, None,                  "Main FSS Activated"),
+    (3, None,                  "Ante FSS Activated"),
+    (4, "mainFlameDetected",   "Main Flame Detected"),
+    (5, "mainSmokeDetected",   "Main Smoke Detected"),
+    (6, "anteSmokeDetected",   "Ante Smoke Detected"),
+    (7, None,                  "Main High O₂"),
+    (8, None,                  "Ante High O₂"),
+    (9, None,                  "Ante High O₂"),  # duplicate kept from React
+)
+
+# data[16] → human-readable seat label (mirrors dashboardI18n keys).
+_SEAT_LABELS: dict[int, str] = {
+    21: "Nurse",
+    22: "Ante 1",
+    23: "Ante 2",
+    24: "Ante Nurse",
 }
 
 _UNMAPPED_INDICES = (14, 17, 18, 25, 26)
@@ -82,13 +107,52 @@ def apply_data_array(state, payload: Sequence[float]) -> None:
     if _CHILLER_PV_INDEX < n:
         state.chillerCurrentTemp = float(payload[_CHILLER_PV_INDEX]) / _CHILLER_PV_DIVISOR
     if _ALARM_BITS_INDEX < n:
-        _apply_alarm_bits(state, int(payload[_ALARM_BITS_INDEX]))
+        _apply_alarm_bits(state, int(payload[_ALARM_BITS_INDEX]), payload)
     if log.isEnabledFor(logging.DEBUG):
         for idx in _UNMAPPED_INDICES:
             if idx < n and payload[idx]:
                 log.debug("PLC data[%d] = %r (still unmapped)", idx, payload[idx])
 
 
-def _apply_alarm_bits(state, bits: int) -> None:
+def _apply_alarm_bits(state, bits: int, payload: Sequence[float]) -> None:
+    """Mirror dashboard.tsx error-word handling.
+
+    `bits` is data[19], a 16-bit error word. Bit 0 is the master gate —
+    when it falls to 0, the modals close and transient flags reset.
+    When it's 1, the seat-bit (1) and error-bit chain (2..9) decide what
+    to show.
+    """
+    # Always reflect the per-bit flags onto state so panels/dots can react
+    # to them even while the master modal is gated.
     for bit, attr in _ALARM_BITS.items():
         setattr(state, attr, bool(bits & (1 << bit)))
+
+    master = bool(bits & (1 << _BIT_MASTER))
+    if not master:
+        # Master gate dropped — only the *modal* state resets. Per-bit
+        # flags above still mirror the raw word so panels/dots stay
+        # honest (test_plc_data_map.py enforces this).
+        state.showErrorModal = False
+        state.errorMessage = ""
+        state.activeSeatAlarm = {}
+        state.showSeatAlarmModal = False
+        return
+
+    # Master gate is on. Seat alarms (bit 1) open the seat modal; data[16]
+    # carries the seat ID.
+    if bits & (1 << _BIT_SEAT) and not state.showSeatAlarmModal:
+        seat_id = int(payload[_SEAT_INDEX]) if len(payload) > _SEAT_INDEX else 0
+        label = _SEAT_LABELS.get(seat_id, str(seat_id))
+        state.activeSeatAlarm = {"seatNumber": label}
+        state.showSeatAlarmModal = True
+
+    # First matching error bit wins the modal slot — mirrors React's elif
+    # chain. We don't re-open the modal if the user already dismissed it.
+    # The flag attrs (mainFlameDetected, etc.) are already set by the raw
+    # bit-mirror loop above, so this only manages modal + message.
+    if not state.showErrorModal:
+        for bit, _flag_attr, message in _ERROR_BIT_MESSAGES:
+            if bits & (1 << bit):
+                state.errorMessage = message
+                state.showErrorModal = True
+                break

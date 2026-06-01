@@ -104,6 +104,58 @@ def test_apply_alarm_bits_unpacks_data19(qapp):
     assert s.mainFlameDetected is False
 
 
+def test_alarm_master_gate_opens_error_modal(qapp):
+    """Master bit (0) + error bit (4 = main flame) opens the error modal
+    with the matching message."""
+    s = AppState()
+    payload = [0.0] * 31
+    payload[19] = (1 << 0) | (1 << 4)  # master + main flame
+    apply_data_array(s, payload)
+    assert s.showErrorModal is True
+    assert "Flame" in s.errorMessage
+    assert s.mainFlameDetected is True
+
+
+def test_alarm_master_off_closes_error_modal(qapp):
+    """When the master gate drops the modal state resets, but per-bit
+    flags continue to reflect the raw word."""
+    s = AppState()
+    s.showErrorModal = True
+    s.errorMessage = "stale"
+    s.showSeatAlarmModal = True
+    payload = [0.0] * 31
+    payload[19] = 1 << 4  # bit 4 set but master (bit 0) is 0
+    apply_data_array(s, payload)
+    assert s.showErrorModal is False
+    assert s.errorMessage == ""
+    assert s.showSeatAlarmModal is False
+    # raw bit still mirrors
+    assert s.mainFlameDetected is True
+
+
+def test_alarm_seat_bit_opens_seat_modal(qapp):
+    """Bit 1 (seat) + data[16] seat ID populates activeSeatAlarm."""
+    s = AppState()
+    payload = [0.0] * 31
+    payload[19] = (1 << 0) | (1 << 1)  # master + seat
+    payload[16] = 21  # nurse
+    apply_data_array(s, payload)
+    assert s.showSeatAlarmModal is True
+    assert s.activeSeatAlarm.get("seatNumber") == "Nurse"
+
+
+def test_alarm_first_bit_wins_modal_slot(qapp):
+    """When several error bits are set together, the lowest one (per
+    the React elif chain) decides the displayed message."""
+    s = AppState()
+    payload = [0.0] * 31
+    # master + bit 5 (main smoke) + bit 7 (main high O2) — smoke wins
+    payload[19] = (1 << 0) | (1 << 5) | (1 << 7)
+    apply_data_array(s, payload)
+    assert s.showErrorModal is True
+    assert "Smoke" in s.errorMessage
+
+
 def test_data8_is_not_written_anymore(qapp):
     s = AppState()
     s.airTankPressure = 99.0
