@@ -39,6 +39,13 @@ class PlcClient(QObject):
         super().__init__()
         self._state = state
         self._sio: socketio.AsyncClient | None = None
+        # Commands invoked while the socket is briefly down (during a
+        # reconnect cycle) are queued here and replayed in order on the
+        # next successful connect. Without this, the underlying emit
+        # would raise BadNamespaceError, the create_task would swallow
+        # the failure, and the operator's button press would silently
+        # vanish.
+        self._pending_emits: list[tuple[str, dict]] = []
 
     async def start(self, url: str | None = None) -> None:
         url = url or config.PLC_URL
@@ -96,11 +103,35 @@ class PlcClient(QObject):
         self._state.connected = True
         self.connectionChanged.emit(True)
         log.info("PLC socket connected")
+        # Flush any commands that arrived while we were offline.
+        if self._pending_emits:
+            log.info("Replaying %d queued PLC commands", len(self._pending_emits))
+            queued = self._pending_emits
+            self._pending_emits = []
+            for event, payload in queued:
+                asyncio.create_task(self._safe_emit(event, payload))
 
     def _on_disconnect_sync(self) -> None:
         self._state.connected = False
         self.connectionChanged.emit(False)
         log.info("PLC socket disconnected")
+
+    async def _safe_emit(self, event: str, payload: dict) -> None:
+        """Emit, but on any socket-level failure stash the call for replay
+        when we reconnect. Keeps fire-and-forget call sites simple while
+        guaranteeing the command isn't silently lost."""
+        sio = self._sio
+        if sio is None or not sio.connected:
+            self._pending_emits.append((event, payload))
+            log.info("PLC offline — queued %s %s (q=%d)",
+                     event, payload, len(self._pending_emits))
+            return
+        try:
+            await sio.emit(event, payload)
+        except Exception as exc:
+            self._pending_emits.append((event, payload))
+            log.warning("PLC emit %s %s failed (%s); requeued (q=%d)",
+                        event, payload, exc, len(self._pending_emits))
 
     @staticmethod
     def _as_dict(payload: Any) -> dict | None:
@@ -206,7 +237,7 @@ class PlcClient(QObject):
             log.warning("writeRegister called before start()")
             return
         asyncio.create_task(
-            self._sio.emit("writeRegister", {"register": register, "value": value})
+            self._safe_emit("writeRegister", {"register": register, "value": value})
         )
 
     @Slot(str, int)
@@ -216,5 +247,5 @@ class PlcClient(QObject):
             log.warning("writeBit called before start()")
             return
         asyncio.create_task(
-            self._sio.emit("writeBit", {"register": register, "value": value})
+            self._safe_emit("writeBit", {"register": register, "value": value})
         )
