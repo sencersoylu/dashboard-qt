@@ -71,12 +71,13 @@ Rectangle {
                     anchors.fill: parent
                     enabled: root.enabledState
                     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ForbiddenCursor
-                    onClicked: {
-                        if (index !== root.value) {
-                            root.value = index
-                            root.valueUpdated(index)
-                        }
-                    }
+                    // Fire the signal only — DO NOT assign root.value here.
+                    // The parent QML binds `value` to a state property (e.g.
+                    // appState.airMode). Direct assignment would sever that
+                    // binding, leaving the pill frozen when the state is
+                    // later updated programmatically (e.g. force-Air on
+                    // entering Automatic).
+                    onClicked: if (index !== root.value) root.valueUpdated(index)
                 }
             }
         }
