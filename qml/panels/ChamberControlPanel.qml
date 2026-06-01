@@ -15,10 +15,9 @@ Ui.Card {
         const goingAuto = !(appState && appState.autoMode)
         plcClient.writeBit("M0201", goingAuto ? 1 : 0)
         appState.autoMode = goingAuto
-        // When the operator switches to Automatic, force the gas mode to
-        // Air (airMode = false / index 0). Manual switch leaves the gas
-        // selection where the operator left it.
-        if (goingAuto && appState.airMode) {
+        // Going Automatic always forces gas mode to Air, no matter what
+        // the operator had selected in Manual.
+        if (goingAuto) {
             plcClient.writeBit("M0200", 0)
             appState.airMode = false
         }
@@ -61,10 +60,10 @@ Ui.Card {
 
         Item { Layout.fillHeight: true; Layout.minimumHeight: 16 }
 
-        // ----- Air / Oxygen (only enabled in auto mode) -----
+        // ----- Air / Oxygen (only enabled in MANUAL mode) -----
         Ui.ToggleSwitch {
             Layout.fillWidth: true
-            enabledState: appState && appState.autoMode
+            enabledState: !(appState && appState.autoMode)
             states: [
                 { "label": "Air",    "color": "#3b82f6"        },
                 { "label": "Oxygen", "color": Rsp.Theme.emerald }
