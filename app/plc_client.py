@@ -63,7 +63,10 @@ class PlcClient(QObject):
         delay = 1.0
         while self._sio is not None and not self._sio.connected:
             try:
-                await self._sio.connect(url, transports=["websocket", "polling"])
+                # websocket-only avoids the polling → websocket upgrade
+                # dance that surfaces as transient disconnect+connect blips
+                # on the UI badge.
+                await self._sio.connect(url, transports=["websocket"])
                 log.info("PLC connected to %s", url)
                 return
             except Exception as exc:
@@ -92,10 +95,12 @@ class PlcClient(QObject):
     def _on_connect_sync(self) -> None:
         self._state.connected = True
         self.connectionChanged.emit(True)
+        log.info("PLC socket connected")
 
     def _on_disconnect_sync(self) -> None:
         self._state.connected = False
         self.connectionChanged.emit(False)
+        log.info("PLC socket disconnected")
 
     @staticmethod
     def _as_dict(payload: Any) -> dict | None:

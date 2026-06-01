@@ -38,7 +38,7 @@ class BControlClient(QObject):
         delay = 1.0
         while self._sio is not None and not self._sio.connected:
             try:
-                await self._sio.connect(url, transports=["websocket", "polling"])
+                await self._sio.connect(url, transports=["websocket"])
                 log.info("B-Control connected to %s", url)
                 return
             except Exception as exc:
