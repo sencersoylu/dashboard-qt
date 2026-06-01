@@ -1,4 +1,4 @@
-"""Socket.io client for the PLC bridge at 192.168.3.100:4000.
+"""Socket.io client for the PLC bridge at 192.168.77.100:4000.
 
 Public surface (callable from QML):
 - writeRegister(register: str, value: int)
