@@ -13,6 +13,7 @@ Indices intentionally NOT in DATA_INDEX:
    16 — also carried by the `seatAlarm` event; PlcClient prefers that path
    27, 28, 29 — chiller link/setTemp/runFlag; correlated logic lives in
                 PlcClient, not here
+   31 — o2GeneratorOn coil (0/1); coerced to bool below, not a raw passthrough
 """
 
 from __future__ import annotations
@@ -54,6 +55,10 @@ DATA_INDEX: dict[str, int] = {
 
 _CHILLER_PV_INDEX = 15
 _CHILLER_PV_DIVISOR = 10.0
+
+# O2 generator on/off — the PLC mirrors the M0077 coil into data[31] as 0/1.
+# The UI commands it via writeBit("M0077", ...); this index is the read-back.
+_O2GEN_INDEX = 31
 
 _ALARM_BITS_INDEX = 19
 _SEAT_INDEX = 16
@@ -106,6 +111,11 @@ def apply_data_array(state, payload: Sequence[float]) -> None:
             setattr(state, attr, payload[idx])
     if _CHILLER_PV_INDEX < n:
         state.chillerCurrentTemp = float(payload[_CHILLER_PV_INDEX]) / _CHILLER_PV_DIVISOR
+    if _O2GEN_INDEX < n:
+        try:
+            state.o2GeneratorOn = bool(int(payload[_O2GEN_INDEX]))
+        except (TypeError, ValueError):
+            log.warning("PLC data[31] not numeric: %r", payload[_O2GEN_INDEX])
     if _ALARM_BITS_INDEX < n:
         _apply_alarm_bits(state, int(payload[_ALARM_BITS_INDEX]), payload)
     if log.isEnabledFor(logging.DEBUG):

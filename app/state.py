@@ -99,6 +99,8 @@ class AppState(QObject):
     anteHumidityChanged = Signal()
     techO2PressureChanged = Signal()
     anteFssNitrogenPressureChanged = Signal()
+    # O2 generator on/off — coil commanded via M0077, state read back from data[31].
+    o2GeneratorOnChanged = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -172,6 +174,8 @@ class AppState(QObject):
             "anteHumidity": 0.0,
             "techO2Pressure": 0.0,
             "anteFssNitrogenPressure": 0.0,
+            # ---- O2 generator (live coil state read from data[31]) ----
+            "o2GeneratorOn": False,
         }
         for name, default in defaults.items():
             if name in _PERSISTED:
@@ -231,6 +235,7 @@ class AppState(QObject):
         "mainPressure": float, "mainO2": float, "mainTemp": float, "mainHumidity": float,
         "antePressure": float, "anteO2": float, "anteTemp": float, "anteHumidity": float,
         "techO2Pressure": float, "anteFssNitrogenPressure": float,
+        "o2GeneratorOn": bool,
     }
 
     def _build_prop(_name, _ty, _sig):

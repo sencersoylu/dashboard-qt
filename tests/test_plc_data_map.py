@@ -188,3 +188,24 @@ def test_data8_is_not_written_anymore(qapp):
     payload[30] = 8.0
     apply_data_array(s, payload)
     assert s.airTankPressure == 8.0
+
+
+def test_o2_generator_read_from_data31(qapp):
+    """data[31] is the M0077 coil read-back, coerced to a bool."""
+    s = AppState()
+    assert s.o2GeneratorOn is False
+    payload = [0.0] * 32
+    payload[31] = 1
+    apply_data_array(s, payload)
+    assert s.o2GeneratorOn is True
+    payload[31] = 0
+    apply_data_array(s, payload)
+    assert s.o2GeneratorOn is False
+
+
+def test_o2_generator_absent_on_short_payload(qapp):
+    """A payload that stops before index 31 must not crash or flip the flag."""
+    s = AppState()
+    s.o2GeneratorOn = True
+    apply_data_array(s, [0.0] * 31)  # no index 31
+    assert s.o2GeneratorOn is True  # left untouched

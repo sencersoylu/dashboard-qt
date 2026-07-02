@@ -84,10 +84,23 @@ Rectangle {
                 onChillerRequested: chillerModal.open()
             }
 
-            // Column 2 — Auxiliary Decompression (389 wide)
-            Panels.AuxiliaryOutputPanel {
+            // Column 2 — Auxiliary Decompression (+ optional O₂ Generator card)
+            ColumnLayout {
                 Layout.preferredWidth: 389
                 Layout.fillHeight: true
+                spacing: 24
+
+                Panels.AuxiliaryOutputPanel {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                }
+
+                // Cabinet-specific: the panel hides itself (and drops from the
+                // layout) unless this window's config sets o2Generator: true.
+                Panels.O2GeneratorPanel {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 190
+                }
             }
 
             // Column 3 — Lighting (top) + Fan (bottom)
