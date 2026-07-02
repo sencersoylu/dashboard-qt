@@ -56,8 +56,8 @@ DATA_INDEX: dict[str, int] = {
 _CHILLER_PV_INDEX = 15
 _CHILLER_PV_DIVISOR = 10.0
 
-# O2 generator on/off — the PLC mirrors the M0077 coil into data[31] as 0/1.
-# The UI commands it via writeBit("M0077", ...); this index is the read-back.
+# O2 generator on/off — the PLC mirrors the M0072 coil into data[31] as 0/1.
+# The UI commands it via writeBit("M0072", ...); this index is the read-back.
 _O2GEN_INDEX = 31
 
 _ALARM_BITS_INDEX = 19

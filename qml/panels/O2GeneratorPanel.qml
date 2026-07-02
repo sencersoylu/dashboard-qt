@@ -20,12 +20,12 @@ Ui.Card {
     // Hide (and drop from the layout) entirely on cabinets without the unit.
     visible: o2GenEnabled
 
-    // True read-back design: command the M0077 coil only. The pill position
+    // True read-back design: command the M0072 coil only. The pill position
     // follows appState.o2GeneratorOn, which PlcClient refreshes from data[31],
     // so we deliberately do NOT optimistically echo the new state here.
     function toggleO2Gen() {
         const newVal = (appState && appState.o2GeneratorOn) ? 0 : 1
-        plcClient.writeBit("M0077", newVal)
+        plcClient.writeBit("M0072", newVal)
     }
 
     ColumnLayout {

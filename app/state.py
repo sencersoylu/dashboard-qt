@@ -99,7 +99,7 @@ class AppState(QObject):
     anteHumidityChanged = Signal()
     techO2PressureChanged = Signal()
     anteFssNitrogenPressureChanged = Signal()
-    # O2 generator on/off — coil commanded via M0077, state read back from data[31].
+    # O2 generator on/off — coil commanded via M0072, state read back from data[31].
     o2GeneratorOnChanged = Signal()
 
     def __init__(self) -> None:
