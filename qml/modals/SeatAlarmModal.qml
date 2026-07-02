@@ -33,18 +33,18 @@ Ui.AppModal {
                 NumberAnimation { from: 1.1; to: 1.0; duration: 600; easing.type: Easing.InOutQuad }
             }
         }
-        Text {
+        Image {
             anchors.centerIn: parent
-            text: "S"
-            color: Rsp.Theme.rose
-            font.pixelSize: 52
-            font.weight: Font.Bold
+            source: "../../assets/icons/armchair.svg"
+            sourceSize.width: 48
+            sourceSize.height: 48
+            fillMode: Image.PreserveAspectFit
         }
     }
 
     Text {
         Layout.alignment: Qt.AlignHCenter
-        text: "Koltuk Alarmı"
+        text: "Seat Alarm"
         color: Rsp.Theme.text
         font.family: Rsp.Theme.fontFamily
         font.pixelSize: Rsp.Theme.fontSizeXl
@@ -64,7 +64,7 @@ Ui.AppModal {
 
     Ui.AppButton {
         Layout.fillWidth: true
-        text: "Sıfırla"
+        text: "Close Alarm"
         variant: "danger"
         onClicked: root.dismiss()
     }
