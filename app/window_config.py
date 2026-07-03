@@ -5,7 +5,8 @@ file lives at `~/.config/rsp-qt/windows-config.json` and looks like:
 
     {
       "windows": [
-        {"id": "main",   "page": "Dashboard",  "display": 0, "fullscreen": true},
+        {"id": "main",   "page": "Dashboard",  "display": 0, "fullscreen": true,
+         "fanOnOff": true, "lightOnOff": true},
         {"id": "vitals", "page": "VitalSigns", "display": 1, "fullscreen": true}
       ]
     }
@@ -14,6 +15,11 @@ file lives at `~/.config/rsp-qt/windows-config.json` and looks like:
 which backend clients it actually needs via PAGE_CLIENTS; `main.py` starts
 only the union of those — so a dashboard-only setup doesn't dial vitals or
 B-Control.
+
+Optional per-window UI flags (read directly in QML via `Window.window.cfg`):
+`o2Generator` shows the O₂ Generator card; `fanOnOff` / `lightOnOff` collapse
+the Fan / Lighting controls from the 4-level (Off/Low/Med/High) toggle to a
+plain Off/On toggle. All default to false when absent.
 """
 
 from __future__ import annotations
