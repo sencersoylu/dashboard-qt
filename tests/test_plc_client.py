@@ -154,3 +154,65 @@ def test_chiller_state_skips_when_data27_is_string(qapp):
     assert s.chillerCommError is False
     assert s.chillerSetTemp == 20.0
     assert s.chillerRunning is False
+
+
+# ---- Reconnect replay / command-delivery race ----
+#
+# python-socketio sets `sio.connected = True` only at the very END of its
+# connect() coroutine — AFTER it has registered the namespace and fired our
+# `connect` handler (which replays the offline queue). So at replay time the
+# flag still reads False even though emit() already works. Gating _safe_emit on
+# sio.connected therefore re-queued every replayed command forever: the root
+# cause of "socket.io sometimes doesn't transmit commands".
+
+@pytest.mark.asyncio
+async def test_safe_emit_sends_even_when_connected_flag_false(qapp):
+    """_safe_emit must not gate on sio.connected. During the connect event the
+    namespace is registered (emit succeeds) but the flag still reads False."""
+    s = AppState()
+    client = PlcClient(s)
+    sio = MagicMock()
+    sio.connected = False           # the connect-race condition
+    sio.emit = AsyncMock()
+    client._sio = sio
+    await client._safe_emit("writeRegister", {"register": "R01700", "value": 200})
+    sio.emit.assert_awaited_once_with(
+        "writeRegister", {"register": "R01700", "value": 200}
+    )
+    assert client._pending_emits == []
+
+
+@pytest.mark.asyncio
+async def test_reconnect_replays_and_delivers_queued_command(qapp):
+    """A command queued while offline must actually be delivered on the next
+    connect — even though sio.connected is still False when the replay runs."""
+    s = AppState()
+    client = PlcClient(s)
+    client._pending_emits = [("writeRegister", {"register": "R01704", "value": 255})]
+    sio = MagicMock()
+    sio.connected = False
+    sio.emit = AsyncMock()
+    client._sio = sio
+    client._on_connect_sync()       # schedules the replay via create_task
+    await asyncio.sleep(0)
+    await asyncio.sleep(0)
+    sio.emit.assert_awaited_once_with(
+        "writeRegister", {"register": "R01704", "value": 255}
+    )
+    assert client._pending_emits == []
+    client._stop_keepalive()
+
+
+@pytest.mark.asyncio
+async def test_safe_emit_requeues_when_emit_raises(qapp):
+    """When the socket is genuinely down, emit raises and the command must be
+    stashed for the next replay (not silently lost)."""
+    s = AppState()
+    client = PlcClient(s)
+    sio = MagicMock()
+    sio.connected = False
+    sio.emit = AsyncMock(side_effect=RuntimeError("/ is not a connected namespace"))
+    client._sio = sio
+    await client._safe_emit("writeBit", {"register": "M0072", "value": 1})
+    sio.emit.assert_awaited_once()
+    assert client._pending_emits == [("writeBit", {"register": "M0072", "value": 1})]

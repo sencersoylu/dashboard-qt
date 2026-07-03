@@ -16,6 +16,7 @@ import logging
 from typing import Any
 
 import socketio
+from engineio import packet as eio_packet
 from PySide6.QtCore import QObject, Signal, Slot
 
 from app import config
@@ -31,6 +32,17 @@ _CHILLER_SET_TEMP_INDEX = 28      # raw / 10 = C
 _CHILLER_SET_TEMP_DIVISOR = 10.0
 _CHILLER_STATUS_FLAG_INDEX = 29   # bit 0 = running
 
+# The PLC bridge advertises an engine.io heartbeat (pingInterval=25s +
+# pingTimeout=20s) but never actually SENDS a PING, so its idle timer elapses
+# and it closes the socket every ~45s — the client immediately reconnects,
+# producing a visible Disconnected/Connected flap (verified: an independent
+# bare client drops at exactly 45.0s with zero PINGs received). Any inbound
+# packet resets that server-side timer, so we send an unsolicited engine.io
+# PONG every 20s (comfortably inside the 45s deadline). Verified on-device to
+# hold the connection open indefinitely. The real fix belongs in the bridge;
+# this is the client-side workaround until then.
+_KEEPALIVE_INTERVAL_SECONDS = 20.0
+
 
 class PlcClient(QObject):
     connectionChanged = Signal(bool)
@@ -39,6 +51,7 @@ class PlcClient(QObject):
         super().__init__()
         self._state = state
         self._sio: socketio.AsyncClient | None = None
+        self._keepalive_task: asyncio.Task | None = None
         # Commands invoked while the socket is briefly down (during a
         # reconnect cycle) are queued here and replayed in order on the
         # next successful connect. Without this, the underlying emit
@@ -103,6 +116,8 @@ class PlcClient(QObject):
         self._state.connected = True
         self.connectionChanged.emit(True)
         log.info("PLC socket connected")
+        # Keep the server's idle timer from closing us every ~45s.
+        self._start_keepalive()
         # Flush any commands that arrived while we were offline.
         if self._pending_emits:
             log.info("Replaying %d queued PLC commands", len(self._pending_emits))
@@ -114,24 +129,75 @@ class PlcClient(QObject):
     def _on_disconnect_sync(self) -> None:
         self._state.connected = False
         self.connectionChanged.emit(False)
+        self._stop_keepalive()
         log.info("PLC socket disconnected")
+
+    def _start_keepalive(self) -> None:
+        self._stop_keepalive()
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No running loop (e.g. unit tests driving the sync helper
+            # directly). Keepalive is a runtime-only concern; skip it.
+            return
+        self._keepalive_task = loop.create_task(self._keepalive_loop())
+
+    def _stop_keepalive(self) -> None:
+        if self._keepalive_task is not None:
+            self._keepalive_task.cancel()
+            self._keepalive_task = None
+
+    async def _keepalive_loop(self) -> None:
+        """Periodically send an unsolicited engine.io PONG so the PLC bridge's
+        idle timeout never fires. See `_KEEPALIVE_INTERVAL_SECONDS` for why.
+
+        Sends a real engine.io PONG *control* packet via `eio._send_packet`
+        (NOT `eio.send`, which would wrap "3" as a socket.io MESSAGE the server
+        would mis-parse). The loop is not gated on `sio.connected`: at the
+        moment the `connect` event fires (where this task is spawned) the flag
+        can still read False, so an entry guard would exit immediately and
+        never send a thing. The task instead runs until cancelled by
+        `_stop_keepalive` on disconnect; a send against a dropped socket just
+        raises and is swallowed."""
+        sio = self._sio
+        if sio is None:
+            return
+        try:
+            while True:
+                await asyncio.sleep(_KEEPALIVE_INTERVAL_SECONDS)
+                try:
+                    await sio.eio._send_packet(eio_packet.Packet(eio_packet.PONG))
+                except Exception as exc:
+                    log.debug("PLC keepalive PONG failed: %s", exc)
+        except asyncio.CancelledError:
+            pass
 
     async def _safe_emit(self, event: str, payload: dict) -> None:
         """Emit, but on any socket-level failure stash the call for replay
         when we reconnect. Keeps fire-and-forget call sites simple while
-        guaranteeing the command isn't silently lost."""
+        guaranteeing the command isn't silently lost.
+
+        Deliberately does NOT pre-check `sio.connected`. python-socketio flips
+        that flag True only at the very end of its connect() coroutine — AFTER
+        it has registered the namespace and fired our `connect` handler, which
+        is where the offline queue is replayed. So at replay time `connected`
+        still reads False even though `emit()` already works (it only needs the
+        namespace registered). Gating on `connected` here re-queued every
+        replayed command forever — the root cause of commands never reaching
+        the PLC. We let `emit()` itself decide: it raises BadNamespaceError
+        when genuinely offline, which the except stashes for the next replay."""
         sio = self._sio
-        if sio is None or not sio.connected:
+        if sio is None:
             self._pending_emits.append((event, payload))
-            log.info("PLC offline — queued %s %s (q=%d)",
+            log.info("PLC not started — queued %s %s (q=%d)",
                      event, payload, len(self._pending_emits))
             return
         try:
             await sio.emit(event, payload)
         except Exception as exc:
             self._pending_emits.append((event, payload))
-            log.warning("PLC emit %s %s failed (%s); requeued (q=%d)",
-                        event, payload, exc, len(self._pending_emits))
+            log.info("PLC offline — queued %s %s (%s) (q=%d)",
+                     event, payload, exc, len(self._pending_emits))
 
     @staticmethod
     def _as_dict(payload: Any) -> dict | None:
